@@ -1,0 +1,14 @@
+workflow_output: results/meqtl_cis/chm13_observed_sv_same_chrom/integration/ccre_enrichment
+python_cmd: pixi run python
+associations: results/meqtl_cis/chm13_observed_sv_same_chrom/summary/pc30/retained_assoc.tsv.gz
+matrix_dir: results/meqtl_cis/chm13_native_same_chrom/matrices
+reference: ${CENSV_COLLAB_ROOT}/resources/chm13v2.0.fa.gz
+screen: resources/encode_screen_chm13/CHM13v2-cCREs.bed.gz
+gm12878: resources/encode_screen_chm13/CHM13v2_GM12878_active_cCREs.bed.gz
+activity_dir: resources/encode_screen_chm13
+q_max: 0.01
+n_permutations: 10000
+chroms: [chr1, chr2, chr3, chr4, chr5, chr6, chr7, chr8, chr9, chr10, chr11, chr12, chr13, chr14, chr15, chr16, chr17, chr18, chr19, chr20, chr21, chr22]
+chrom_arg: chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr20 chr21 chr22
+worker_mem_mb: 12000
+worker_runtime: 240

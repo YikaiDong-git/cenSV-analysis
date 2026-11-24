@@ -1,0 +1,230 @@
+configfile: "config/meqtl_comprehensive_conditioning.yaml"
+
+from pathlib import Path
+import pandas as pd
+
+root = Path(config["workflow_output"])
+config_path = Path("config/meqtl_comprehensive_conditioning.yaml")
+python_cmd = str(config.get("python_cmd", "uv run python"))
+manifest_dir = root / "manifests"
+summary_dir = root / "summary"
+manifest_outputs = [
+    manifest_dir / "pairs.tsv.gz", manifest_dir / "svs.tsv",
+    manifest_dir / "outcome_batches.tsv", manifest_dir / "snp_tasks.tsv",
+    manifest_dir / "analysis_tasks.tsv", manifest_dir / "provenance.json",
+]
+summary_outputs = [
+    summary_dir / "all_pc_associations.tsv.gz",
+    summary_dir / "pc10_conditioning_results.tsv.gz",
+    summary_dir / "panel_window_robustness.tsv",
+    summary_dir / "conditioning_consensus.tsv",
+    summary_dir / "window_scope_summary.tsv",
+    summary_dir / "failure_rows.tsv.gz",
+    summary_dir / "summary.json",
+]
+prep_config = config["panel_preparation"]
+prep_root = Path(prep_config["output_dir"])
+source_chromosomes = sorted(
+    set(pd.read_csv(config["hierarchical_discoveries"], sep="\t", usecols=["sv_chrom"]).sv_chrom)
+    | set(pd.read_csv(config["global_pair_discoveries"], sep="\t", usecols=["sv_chrom"]).sv_chrom),
+    key=lambda value: int(str(value).removeprefix("chr")),
+)
+region_outputs = [prep_root / "regions" / f"{chrom}.bed" for chrom in source_chromosomes]
+panel_summary_outputs = [
+    prep_root / "joint_chm13" / "panel_checksums.tsv",
+    prep_root / "verified_interval_coverage.tsv.gz",
+    prep_root / "panel_readiness.json",
+]
+
+def read_tasks(name):
+    prepared = checkpoints.prepare_manifest.get()
+    return pd.read_csv(manifest_dir / name, sep="\t")
+
+def all_analysis_outputs(wildcards):
+    tasks = read_tasks("analysis_tasks.tsv").analysis_task_id.astype(str)
+    return [str(root / "analysis" / task / filename) for task in tasks
+            for filename in ("associations.tsv.gz", "susie_variables.tsv.gz", "failures.tsv", "summary.json")]
+
+def analysis_snp_file(wildcards, filename):
+    tasks = read_tasks("analysis_tasks.tsv").set_index("analysis_task_id")
+    snp_task = str(tasks.loc[wildcards.task_id, "snp_task_id"])
+    return str(root / "snps" / snp_task / filename)
+
+def snp_panel_path(wildcards, key):
+    tasks = read_tasks("snp_tasks.tsv").set_index("snp_task_id")
+    svs = read_tasks("svs.tsv").set_index("sv_id")
+    task = tasks.loc[wildcards.task_id]
+    chrom = str(svs.loc[str(task.sv_id), "chrom"])
+    return str(config["panels"][str(task.panel)][key]).format(chrom=chrom)
+
+def snp_panel_index(wildcards):
+    return snp_panel_path(wildcards, "vcf_template") + ".tbi"
+
+rule all:
+    input:
+        summary_outputs,
+        panel_summary_outputs,
+
+checkpoint prepare_manifest:
+    input:
+        config=config_path,
+        hierarchy=Path(config["hierarchical_discoveries"]),
+        global_pairs=Path(config["global_pair_discoveries"]),
+        jobs=Path(config["job_manifest"]),
+        design=Path(config["canonical_design"]),
+        script="scripts/prepare_comprehensive_conditioning_manifest.py",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        pairs=manifest_outputs[0], svs=manifest_outputs[1], batches=manifest_outputs[2],
+        snp_tasks=manifest_outputs[3], analysis_tasks=manifest_outputs[4], provenance=manifest_outputs[5],
+    resources:
+        mem_mb=8000, runtime=30,
+    shell:
+        "{python_cmd} scripts/prepare_comprehensive_conditioning_manifest.py --config {input.config}"
+
+rule prepare_panel_manifests:
+    input:
+        config=config_path,
+        svs=lambda wc: checkpoints.prepare_manifest.get().output.svs,
+        samples=Path(prep_config["samples"]),
+        listing=Path(prep_config["ont_s3_listing"]),
+        script="scripts/prepare_comprehensive_conditioning_panels.py",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        regions=region_outputs,
+        region_manifest=prep_root / "region_manifest.tsv",
+        sources=prep_root / "source_manifest.tsv.gz",
+        coverage=prep_root / "interval_coverage_manifest.tsv.gz",
+        ont_checksums=prep_root / "existing_ont_panel_checksums.tsv",
+        summary=prep_root / "preparation_summary.json",
+    resources:
+        mem_mb=4000, runtime=30,
+    shell:
+        "{python_cmd} scripts/prepare_comprehensive_conditioning_panels.py --config {input.config}"
+
+rule extract_joint_panel_chromosome:
+    input:
+        config=config_path,
+        regions=prep_root / "regions" / "{chrom}.bed",
+        samples=Path(prep_config["samples"]),
+        preparation=prep_root / "preparation_summary.json",
+        script="scripts/extract_comprehensive_joint_panel.py",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        vcf=prep_root / "joint_chm13" / "vcf" / "{chrom}.vcf.gz",
+        index=prep_root / "joint_chm13" / "vcf" / "{chrom}.vcf.gz.tbi",
+        metrics=prep_root / "joint_chm13" / "metrics" / "{chrom}.json",
+    params:
+        url=lambda wc: str(prep_config["joint_remote_vcf_template"]).format(chrom=wc.chrom),
+        bcftools=str(prep_config.get("bcftools", "bcftools")),
+    threads: int(prep_config.get("threads", 2))
+    resources:
+        mem_mb=int(prep_config.get("mem_mb", 12000)),
+        runtime=int(prep_config.get("runtime", 480)),
+    shell:
+        r"""
+        TMPDIR=${{SLURM_TMPDIR:-/tmp}} OPENBLAS_NUM_THREADS={threads} \
+        {python_cmd} scripts/extract_comprehensive_joint_panel.py \
+          --chrom {wildcards.chrom} --source-url {params.url} \
+          --regions {input.regions} --samples {input.samples} \
+          --output {output.vcf} --index-output {output.index} \
+          --metrics {output.metrics} --bcftools {params.bcftools}
+        """
+
+rule summarize_prepared_panels:
+    input:
+        config=config_path,
+        preparation=prep_root / "preparation_summary.json",
+        coverage=prep_root / "interval_coverage_manifest.tsv.gz",
+        ont_checksums=prep_root / "existing_ont_panel_checksums.tsv",
+        metrics=expand(prep_root / "joint_chm13" / "metrics" / "{chrom}.json", chrom=source_chromosomes),
+        vcfs=expand(prep_root / "joint_chm13" / "vcf" / "{chrom}.vcf.gz", chrom=source_chromosomes),
+        indexes=expand(prep_root / "joint_chm13" / "vcf" / "{chrom}.vcf.gz.tbi", chrom=source_chromosomes),
+        script="scripts/summarize_comprehensive_conditioning_panels.py",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        checksums=panel_summary_outputs[0],
+        coverage=panel_summary_outputs[1],
+        summary=panel_summary_outputs[2],
+    resources:
+        mem_mb=4000, runtime=60,
+    shell:
+        "{python_cmd} scripts/summarize_comprehensive_conditioning_panels.py "
+        "--config {input.config} --metrics {input.metrics} "
+        "--checksums-output {output.checksums} --coverage-output {output.coverage} "
+        "--summary-output {output.summary}"
+
+rule extract_shared_snps:
+    input:
+        config=config_path,
+        tasks=lambda wc: checkpoints.prepare_manifest.get().output.snp_tasks,
+        svs=lambda wc: checkpoints.prepare_manifest.get().output.svs,
+        design=Path(config["canonical_design"]),
+        panel_vcf=lambda wc: snp_panel_path(wc, "vcf_template"),
+        panel_index=snp_panel_index,
+        panel_coverage=lambda wc: snp_panel_path(wc, "coverage_template"),
+        availability=prep_root / "interval_coverage_manifest.tsv.gz",
+        script="scripts/extract_comprehensive_conditioning_snps.py",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        matrix=root / "snps" / "{task_id}" / "matrix.npz",
+        variants=root / "snps" / "{task_id}" / "variants.tsv.gz",
+        status=root / "snps" / "{task_id}" / "status.json",
+    threads: int(config.get("threads_extract", 1))
+    resources:
+        mem_mb=int(config.get("mem_mb_extract", 12000)),
+        runtime=int(config.get("runtime_extract", 240)),
+    shell:
+        r"""
+        TMPDIR=${{SLURM_TMPDIR:-/tmp}} OPENBLAS_NUM_THREADS={threads} \
+        {python_cmd} scripts/extract_comprehensive_conditioning_snps.py \
+          --config {input.config} --task-id {wildcards.task_id} \
+          --matrix-output {output.matrix} --variants-output {output.variants} \
+          --status-output {output.status}
+        """
+
+rule condition_outcome_batch:
+    input:
+        config=config_path,
+        tasks=lambda wc: checkpoints.prepare_manifest.get().output.analysis_tasks,
+        pairs=lambda wc: checkpoints.prepare_manifest.get().output.pairs,
+        design=Path(config["canonical_design"]),
+        snp_matrix=lambda wc: analysis_snp_file(wc, "matrix.npz"),
+        snp_status=lambda wc: analysis_snp_file(wc, "status.json"),
+        script="scripts/run_comprehensive_conditioning_batch.py",
+        susie_script="scripts/run_comprehensive_susie_batch.R",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        associations=root / "analysis" / "{task_id}" / "associations.tsv.gz",
+        susie=root / "analysis" / "{task_id}" / "susie_variables.tsv.gz",
+        failures=root / "analysis" / "{task_id}" / "failures.tsv",
+        summary=root / "analysis" / "{task_id}" / "summary.json",
+    threads: int(config.get("threads_analysis", 1))
+    resources:
+        mem_mb=int(config.get("mem_mb_analysis", 20000)),
+        runtime=int(config.get("runtime_analysis", 240)),
+    shell:
+        r"""
+        TMPDIR=${{SLURM_TMPDIR:-/tmp}} OPENBLAS_NUM_THREADS={threads} OMP_NUM_THREADS={threads} MKL_NUM_THREADS={threads} \
+        {python_cmd} scripts/run_comprehensive_conditioning_batch.py \
+          --config {input.config} --task-id {wildcards.task_id} \
+          --snp-matrix {input.snp_matrix} --snp-status {input.snp_status} \
+          --associations-output {output.associations} --susie-output {output.susie} \
+          --failures-output {output.failures} --summary-output {output.summary}
+        """
+
+rule summarize:
+    input:
+        config=config_path,
+        manifests=lambda wc: checkpoints.prepare_manifest.get().output,
+        analyses=all_analysis_outputs,
+        script="scripts/summarize_comprehensive_conditioning.py",
+        helpers="scripts/robust_meqtl.py",
+    output:
+        all_pc=summary_outputs[0], pc10=summary_outputs[1], panels=summary_outputs[2],
+        consensus=summary_outputs[3], windows=summary_outputs[4], failures=summary_outputs[5],
+        summary=summary_outputs[6],
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 24000)), runtime=int(config.get("runtime_summary", 120)),
+    shell:
+        "{python_cmd} scripts/summarize_comprehensive_conditioning.py --config {input.config}"

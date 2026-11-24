@@ -1,0 +1,16 @@
+executor: slurm
+
+default-resources:
+  slurm_partition: "nodes"
+  mem_mb: 1000
+  runtime: 60
+
+jobs: 50
+max-jobs-per-second: 10
+max-status-checks-per-second: 5
+
+restart-times: 3
+keep-going: true
+printshellcmds: true
+use-conda: false
+latency-wait: 120

@@ -1,0 +1,58 @@
+analysis_stage: production
+workflow_output: results/meqtl_cis/chm13_observed_sv_robust_mac8_pc10
+job_manifest: results/meqtl_cis/chm13_observed_sv_same_chrom/manifests/job_manifest.tsv
+matrix_dir: results/meqtl_cis/chm13_native_same_chrom/matrices
+covariates: results/meqtl_cis/chm13_observed_sv_same_chrom/covariates/pc30/meqtl_covariates.tsv
+sv_qc: results/meqtl_cis/chm13_observed_sv_same_chrom/integration/allele_specific_mechanism/all_tested_sv_burden_with_external_frequency.tsv
+targets: results/meqtl_cis/chm13_observed_sv_same_chrom/integration/conditioning_consensus/conditioning_consensus.tsv
+genotype_covariates:
+- sex
+- gPC1
+- gPC2
+- gPC3
+- gPC4
+- gPC5
+methylation_covariates:
+- methylPC1
+- methylPC2
+- methylPC3
+- methylPC4
+- methylPC5
+- methylPC6
+- methylPC7
+- methylPC8
+- methylPC9
+- methylPC10
+min_carriers: 0
+primary_min_carriers: 0
+min_feature_fraction: 0.9
+n_multipliers: 10000
+multiplier_seed_base: 884279
+multiplier_batch_size: 250
+feature_batch_size: 500
+score_thresholds:
+- 2.0
+- 2.5
+- 3.0
+- 3.5
+- 4.0
+- 4.5
+- 5.0
+- 6.0
+- 7.0
+- 8.0
+pvalue_threshold: 0.0001
+top_per_sv: 20
+threads_assoc: 4
+mem_mb_assoc: 24000
+runtime_assoc: 720
+mem_mb_summary: 32000
+runtime_summary: 240
+min_mac: 8.0
+primary_min_mac: 8.0
+scheduler:
+  max_jobs: 50
+  allowed_nodes:
+  - node03
+  - node04
+  - node05

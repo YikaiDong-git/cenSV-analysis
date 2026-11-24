@@ -1,0 +1,109 @@
+configfile: "config/meqtl_focused_trans.yaml"
+
+from pathlib import Path
+
+import pandas as pd
+
+output_dir = Path(config["workflow_output"])
+matrix_dir = Path(config["matrix_source_dir"])
+source_manifest = Path(config["source_job_manifest"])
+covariates = Path(config["covariates"])
+consensus = Path(config["conditioning_consensus"])
+candidate_evidence = Path(config["candidate_evidence"])
+python_cmd = config.get("python_cmd", "uv run python")
+
+source_jobs = pd.read_csv(source_manifest, sep="\t")
+chunks = source_jobs[["chunk_id", "chrom", "start", "end"]].drop_duplicates("chunk_id").reset_index(drop=True)
+chunks["job_id"] = [f"trans{i:06d}" for i in range(len(chunks))]
+chunk_lookup = chunks.set_index("job_id").to_dict(orient="index")
+job_ids = chunks["job_id"].tolist()
+
+manifest = output_dir / "manifests" / "chunk_manifest.tsv"
+candidate_dosages = output_dir / "inputs" / "focused_sv_dosages.tsv"
+candidate_metadata = output_dir / "inputs" / "focused_sv_metadata.tsv"
+candidate_table = output_dir / "inputs" / "focused_candidates.tsv"
+jobs_dir = output_dir / "jobs"
+summary_dir = output_dir / "summary"
+
+localrules: write_manifest, prepare_candidates, summarize
+
+rule all:
+    input:
+        summary_dir / "summary.json",
+        summary_dir / "retained_trans_assoc.tsv.gz",
+        summary_dir / "trans_hits_empirical_fwer_005.tsv",
+
+rule write_manifest:
+    output:
+        manifest,
+    run:
+        Path(output[0]).parent.mkdir(parents=True, exist_ok=True)
+        chunks.to_csv(output[0], sep="\t", index=False)
+
+rule prepare_candidates:
+    input:
+        consensus=consensus,
+        evidence=candidate_evidence,
+    output:
+        dosages=candidate_dosages,
+        metadata=candidate_metadata,
+        candidates=candidate_table,
+    shell:
+        (
+            "{python_cmd} scripts/prepare_focused_trans_candidates.py "
+            "--consensus {input.consensus} --candidate-evidence {input.evidence} "
+            "--output-dosages {output.dosages} --output-metadata {output.metadata} "
+            "--output-candidates {output.candidates}"
+        )
+
+rule scan_chunk:
+    input:
+        matrix=lambda wc: matrix_dir / f"{chunk_lookup[wc.job_id]['chunk_id']}.methylation.tsv.gz",
+        covariates=covariates,
+        dosages=candidate_dosages,
+        metadata=candidate_metadata,
+    output:
+        signals=jobs_dir / "{job_id}" / "signals.tsv.gz",
+        null=jobs_dir / "{job_id}" / "null_stats.tsv.gz",
+        summary=jobs_dir / "{job_id}" / "summary.json",
+    threads: int(config.get("threads_scan", 2))
+    resources:
+        mem_mb=int(config.get("mem_mb_scan", 16000)),
+        runtime=int(config.get("runtime_scan", 240)),
+    shell:
+        (
+            "{python_cmd} scripts/run_focused_trans_meqtl.py "
+            "--sv-dosages {input.dosages} --sv-metadata {input.metadata} "
+            "--methylation-matrix {input.matrix} --covariates {input.covariates} "
+            "--n-permutations {config[n_permutations]} "
+            "--permutation-seed-base {config[permutation_seed_base]} "
+            "--permutation-batch-size {config[permutation_batch_size]} "
+            "--pvalue-threshold {config[association_pvalue_threshold]} "
+            "--top-per-sv {config[top_per_sv]} "
+            "--output {output.signals} --null-stats {output.null} --summary {output.summary}"
+        )
+
+rule summarize:
+    input:
+        manifest=manifest,
+        candidates=candidate_table,
+        signals=expand(jobs_dir / "{job_id}" / "signals.tsv.gz", job_id=job_ids),
+        null=expand(jobs_dir / "{job_id}" / "null_stats.tsv.gz", job_id=job_ids),
+        summaries=expand(jobs_dir / "{job_id}" / "summary.json", job_id=job_ids),
+    output:
+        summary=summary_dir / "summary.json",
+        assoc=summary_dir / "retained_trans_assoc.tsv.gz",
+        hits=summary_dir / "trans_hits_empirical_fwer_005.tsv",
+        top=summary_dir / "top_trans_hits.tsv",
+        null_sv=summary_dir / "permutation_maxima_by_sv.tsv.gz",
+        null_global=summary_dir / "permutation_global_maxima.tsv",
+        jobs=summary_dir / "job_summary.tsv",
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 12000)),
+        runtime=int(config.get("runtime_summary", 120)),
+    shell:
+        (
+            "{python_cmd} scripts/summarize_focused_trans_meqtl.py "
+            "--chunk-manifest {input.manifest} --jobs-dir {jobs_dir} "
+            "--candidates {input.candidates} --output-dir {summary_dir}"
+        )

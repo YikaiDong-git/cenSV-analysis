@@ -1,0 +1,136 @@
+import os
+import sys
+import subprocess
+import os as _censv_os  # cenSV-analysis: cluster paths read from the environment
+CENSV_ROOT = _censv_os.environ["CENSV_ROOT"]
+sys.path.append("workflow/scripts/helper")
+from select_samples import get_samples_by_group
+
+configfile: "config/config.yaml"
+
+SV_MODE = config.get("sv_mode", "standard") # "standard" or "decompose"
+if isinstance(SV_MODE, list):
+    SV_MODE = SV_MODE[0]
+if SV_MODE == "standard":
+    ruleorder: extract_svs_python > haplogroup_clustering_svim
+else:
+    ruleorder: haplogroup_clustering_svim > extract_svs_python
+
+classification_csv = "workflow/scripts/helper/sample_classification.csv"
+if not os.path.exists(classification_csv):
+    subprocess.run(["python3", "workflow/scripts/helper/classify_samples.py"], check=True)
+
+for d in ["input/HPRC", "alignments", "resources", "variant_calling", config.get("scratch_dir", CENSV_ROOT + "/scratch/minimap2")]:
+    if not os.path.exists(d):
+        os.makedirs(d)
+
+TARGET_GROUPS = config.get("target_groups", ["Group 3"])
+SAMPLES_INFO = get_samples_by_group("workflow/scripts/helper/sample_classification.csv", TARGET_GROUPS)
+SAMPLES = list(SAMPLES_INFO.keys()) if SAMPLES_INFO else config.get("samples", ["HG00235", "HG00272", "HG00280"])
+HAPLOTYPES = ["hap1", "hap2"]
+REFERENCE = "chm13v2.0"
+
+MAPQ = config.get("mapq", [5])
+MINSVLEN = config.get("minsvlen", [10])
+MINSUPPORT = config.get("minsupport", [2])
+TR_MODES = config.get("tr_modes", ["censat_filtered"])
+MIN_MAPQ_SVIM = config.get("min_mapq_svim", [20])
+MAX_SV_SIZE = config.get("max_sv_size", [500000])
+QUERY_GAP_TOLERANCE = config.get("query_gap_tolerance", [200])
+REFERENCE_GAP_TOLERANCE = config.get("reference_gap_tolerance", [200])
+MAX_PARTITION_SIZE = config.get("max_partition_size", [10])
+PARTITION_MAX_DISTANCE = config.get("partition_max_distance", [1000])
+MAX_EDIT_DISTANCE = config.get("max_edit_distance", [200])
+FKSIZE = config.get("fksize", [100000])
+
+SVIM_PARAM_STRING = "mapq{mapq}_minsvlen{minsvlen}_maxpart{maxpart}_partdist{partdist}_maxedit{maxedit}_maxsv{maxsv}_qgap{qgap}_rgap{rgap}"
+
+ALIGN_MODES = config.get("align_modes", ["svim_asm"])
+SV_CHRS = [str(c) for c in range(1, 23)] + ["X"]
+SV_DIR = "sv_extraction/" + SV_MODE
+
+IMPUTATION_R2_THRESHOLD = config.get("imputation_r2_threshold", 0.1)
+IMPUTATION_SAMPLES = config.get("imputation_samples", "resources/imputation_target_samples.txt")
+
+include: "rules/resources.smk"
+include: "rules/alignment.smk"
+include: "rules/sv_calling.smk"
+include: "rules/snp_extraction.smk"
+include: "rules/decomposition.smk"
+include: "rules/elastic_net.smk"
+include: "rules/plotting.smk"
+include: "rules/strategies.smk"
+include: "rules/qtl.smk"
+
+final_inputs = []
+
+final_inputs.extend(expand("alignments/{mode}/{sample}_{hap}_to_chm13.bam", sample=SAMPLES, hap=HAPLOTYPES, mode=ALIGN_MODES))
+
+if "svim_asm" in ALIGN_MODES:
+    final_inputs.extend(expand("variant_calling/svim_asm/cohort_svim_asm_mapq{mapq}_minsvlen{minsvlen}_maxpart{maxpart}_partdist{partdist}_maxedit{maxedit}_maxsv{maxsv}_qgap{qgap}_rgap{rgap}.vcf.gz",
+        mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE, partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE, maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+if "svim_asm" in ALIGN_MODES:
+    final_inputs.extend(expand(SV_DIR + "/mapq{mapq}_minsvlen{minsvlen}_maxpart{maxpart}_partdist{partdist}_maxedit{maxedit}_maxsv{maxsv}_qgap{qgap}_rgap{rgap}/allchr_haplogroups.tsv",
+        mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE, partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE, maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+    final_inputs.extend(expand(SV_DIR + "/mapq{mapq}_minsvlen{minsvlen}_maxpart{maxpart}_partdist{partdist}_maxedit{maxedit}_maxsv{maxsv}_qgap{qgap}_rgap{rgap}/" + ("allchr_sv_variants.tsv" if SV_MODE == "decompose" else "extraction_summary.tsv"),
+        mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE, partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE, maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+final_inputs.extend(expand("snp_extraction/fksize{fksize}/chr{chr}_snp_genotypes.npz", fksize=FKSIZE, chr=SV_CHRS))
+
+final_inputs.extend(expand("snp_extraction/edge{n_snps}/chr{chr}_snp_genotypes.npz",
+    n_snps=[500, 1000, 2000], chr=SV_CHRS))
+
+final_inputs.extend(expand("snp_extraction/midpoint{n_snps}/chr{chr}_snp_genotypes.npz",
+    n_snps=[500, 1000], chr=SV_CHRS))
+
+final_inputs.extend(expand(
+    STRAT_EN_BASE + "/{strategy}_" + STRAT_SVIM_SUFFIX + "/chr{chr}/sv_metrics.tsv",
+    strategy=ALL_STRATEGIES, chr=SV_CHRS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+final_inputs.extend(expand(
+    STRAT_IMP_BASE + "/{strategy}_" + STRAT_SVIM_SUFFIX + "/chr{chr}/chr{chr}_imputed_dosages.tsv",
+    strategy=ALL_STRATEGIES, chr=SV_CHRS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+final_inputs.extend(expand(
+    STRAT_IMP_BASE + "/best8_" + STRAT_SVIM_SUFFIX + "/chr{chr}/chr{chr}_imputed_dosages.tsv",
+    chr=SV_CHRS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+final_inputs.extend(expand(
+    EQTL_BASE + f"/chr{{chr}}/{COV_STRING}{EQTL_PEER}/window_{{window}}/cis_qtl_results.tsv",
+    chr=SV_CHRS, window=CIS_WINDOWS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+final_inputs.extend(expand(
+    SQTL_BASE + f"/chr{{chr}}/{COV_STRING}{SQTL_PEER}/window_{{window}}/cis_qtl_results.tsv",
+    chr=SV_CHRS, window=CIS_WINDOWS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+final_inputs.extend(expand(
+    EQTL_BASE + f"/chr{{chr}}/{COV_STRING}{EQTL_PEER}/trans/trans_qtl_results.tsv",
+    chr=SV_CHRS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+final_inputs.extend(expand(
+    SQTL_BASE + f"/chr{{chr}}/{COV_STRING}{SQTL_PEER}/trans/trans_qtl_results.tsv",
+    chr=SV_CHRS,
+    mapq=MIN_MAPQ_SVIM, minsvlen=MINSVLEN, maxpart=MAX_PARTITION_SIZE,
+    partdist=PARTITION_MAX_DISTANCE, maxedit=MAX_EDIT_DISTANCE,
+    maxsv=MAX_SV_SIZE, qgap=QUERY_GAP_TOLERANCE, rgap=REFERENCE_GAP_TOLERANCE))
+
+rule all:
+    input:
+        final_inputs

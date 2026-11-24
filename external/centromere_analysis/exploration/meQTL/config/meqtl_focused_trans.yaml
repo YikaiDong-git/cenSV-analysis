@@ -1,0 +1,19 @@
+workflow_output: results/meqtl_trans/chm13_observed_sv_focused
+source_workflow_output: results/meqtl_cis/chm13_observed_sv_same_chrom
+matrix_source_dir: results/meqtl_cis/chm13_native_same_chrom/matrices
+source_job_manifest: results/meqtl_cis/chm13_observed_sv_same_chrom/manifests/job_manifest.tsv
+covariates: results/meqtl_cis/chm13_observed_sv_same_chrom/covariates/pc30/meqtl_covariates.tsv
+conditioning_consensus: results/meqtl_cis/chm13_observed_sv_same_chrom/integration/conditioning_consensus/conditioning_consensus.tsv
+candidate_evidence: results/meqtl_cis/chm13_observed_sv_same_chrom/integration/tier1_candidates.tsv
+
+n_permutations: 100
+permutation_seed_base: 739391
+permutation_batch_size: 10
+association_pvalue_threshold: 0.0001
+top_per_sv: 20
+
+mem_mb_scan: 16000
+runtime_scan: 240
+threads_scan: 2
+mem_mb_summary: 12000
+runtime_summary: 120

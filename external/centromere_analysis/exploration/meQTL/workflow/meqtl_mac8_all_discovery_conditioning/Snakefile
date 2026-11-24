@@ -1,0 +1,105 @@
+configfile: "config/meqtl_mac8_all_discovery_conditioning.yaml"
+
+from pathlib import Path
+import pandas as pd
+
+root = Path(config["workflow_output"])
+config_path = Path("config/meqtl_mac8_all_discovery_conditioning.yaml")
+snp_tasks = pd.read_csv(root / "manifests/snp_tasks.tsv", sep="\t").set_index("snp_task_id")
+analysis_tasks = pd.read_csv(root / "manifests/analysis_tasks.tsv", sep="\t").set_index("analysis_task_id")
+svs = pd.read_csv(root / "manifests/svs.tsv", sep="\t").set_index("sv_id")
+analysis_ids = analysis_tasks.index.astype(str).tolist()
+
+def snp_panel_path(wildcards, key):
+    task = snp_tasks.loc[wildcards.task_id]
+    chrom = str(svs.loc[str(task.sv_id), "chrom"])
+    return str(config["panels"][str(task.panel)][key]).format(chrom=chrom)
+
+def analysis_snp_file(wildcards, filename):
+    snp_task_id = str(analysis_tasks.loc[wildcards.task_id, "snp_task_id"])
+    return str(root / "snps" / snp_task_id / filename)
+
+def analysis_outputs(filename):
+    return expand(root / "analysis" / "{task_id}" / filename, task_id=analysis_ids)
+
+rule all:
+    input:
+        root / "summary" / "summary.json",
+        root / "summary" / "conditioning_consensus.tsv",
+        root / "summary" / "target_followup_candidates.tsv",
+        root / "summary" / "unconditional_validation.tsv",
+
+rule extract_shared_snps:
+    input:
+        config=config_path,
+        tasks=root / "manifests" / "snp_tasks.tsv",
+        sv_manifest=root / "manifests" / "svs.tsv",
+        design=Path(config["canonical_design"]),
+        panel_vcf=lambda wc: snp_panel_path(wc, "vcf_template"),
+        panel_index=lambda wc: snp_panel_path(wc, "vcf_template") + ".tbi",
+        panel_coverage=lambda wc: snp_panel_path(wc, "coverage_template"),
+        script="scripts/extract_comprehensive_conditioning_snps.py",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        matrix=root / "snps" / "{task_id}" / "matrix.npz",
+        variants=root / "snps" / "{task_id}" / "variants.tsv.gz",
+        status=root / "snps" / "{task_id}" / "status.json",
+    threads: 1
+    resources:
+        mem_mb=10000,
+        runtime=120,
+    shell:
+        "TMPDIR=${{SLURM_TMPDIR:-/tmp}} OPENBLAS_NUM_THREADS=1 "
+        "uv run python scripts/extract_comprehensive_conditioning_snps.py "
+        "--config {input.config} --task-id {wildcards.task_id} "
+        "--matrix-output {output.matrix} --variants-output {output.variants} "
+        "--status-output {output.status}"
+
+rule condition_outcome_batch:
+    input:
+        config=config_path,
+        tasks=root / "manifests" / "analysis_tasks.tsv",
+        pairs=root / "manifests" / "pairs.tsv.gz",
+        design=Path(config["canonical_design"]),
+        snp_matrix=lambda wc: analysis_snp_file(wc, "matrix.npz"),
+        snp_status=lambda wc: analysis_snp_file(wc, "status.json"),
+        script="scripts/run_comprehensive_conditioning_batch.py",
+        susie_script="scripts/run_comprehensive_susie_batch.R",
+        helpers="scripts/comprehensive_conditioning.py",
+    output:
+        associations=root / "analysis" / "{task_id}" / "associations.tsv.gz",
+        variables=root / "analysis" / "{task_id}" / "susie_variables.tsv.gz",
+        failures=root / "analysis" / "{task_id}" / "failures.tsv",
+        summary=root / "analysis" / "{task_id}" / "summary.json",
+    threads: 1
+    resources:
+        mem_mb=10000,
+        runtime=180,
+    shell:
+        "TMPDIR=${{SLURM_TMPDIR:-/tmp}} OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 "
+        "uv run python scripts/run_comprehensive_conditioning_batch.py "
+        "--config {input.config} --task-id {wildcards.task_id} "
+        "--snp-matrix {input.snp_matrix} --snp-status {input.snp_status} "
+        "--associations-output {output.associations} --susie-output {output.variables} "
+        "--failures-output {output.failures} --summary-output {output.summary}"
+
+rule summarize:
+    input:
+        config=config_path,
+        pairs=root / "manifests" / "pairs.tsv.gz",
+        associations=analysis_outputs("associations.tsv.gz"),
+        variables=analysis_outputs("susie_variables.tsv.gz"),
+        failures=analysis_outputs("failures.tsv"),
+        task_summaries=analysis_outputs("summary.json"),
+        script="scripts/summarize_mac8_all_discovery_conditioning.py",
+        helpers="scripts/robust_meqtl.py",
+    output:
+        summary=root / "summary" / "summary.json",
+        consensus=root / "summary" / "conditioning_consensus.tsv",
+        target=root / "summary" / "target_followup_candidates.tsv",
+        validation=root / "summary" / "unconditional_validation.tsv",
+    resources:
+        mem_mb=16000,
+        runtime=120,
+    shell:
+        "uv run python scripts/summarize_mac8_all_discovery_conditioning.py --config {input.config}"

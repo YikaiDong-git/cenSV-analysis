@@ -1,0 +1,102 @@
+workflow_output: results/meqtl_cis/chm13_observed_sv_same_chrom
+matrix_source_dir: results/meqtl_cis/chm13_native_same_chrom/matrices
+covariate_source_dir: results/meqtl_cis/chm13_observed_sv_same_chrom/covariates
+methylation_manifest: results/meqtl_cis/chm13_native_same_chrom/manifests/chm13_methylation_manifest.tsv
+overlap_samples: results/meqtl_cis/chm13_observed_sv_same_chrom/manifests/overlap_samples.txt
+methylation_pc_source: results/meqtl_cis/chm13_native_same_chrom/covariates/global_methylation_pcs_pc100.tsv
+upstream_covariates: resources/MAGE/eqtl_covariates.tab.gz
+include_sex: true
+n_genotype_pcs: 5
+include_platform_covariates: false
+tabix_methylation: false
+
+methylation_chroms: &autosomes
+  - chr1
+  - chr2
+  - chr3
+  - chr4
+  - chr5
+  - chr6
+  - chr7
+  - chr8
+  - chr9
+  - chr10
+  - chr11
+  - chr12
+  - chr13
+  - chr14
+  - chr15
+  - chr16
+  - chr17
+  - chr18
+  - chr19
+  - chr20
+  - chr21
+  - chr22
+chrom_sizes:
+  chr1: 248387328
+  chr2: 242696752
+  chr3: 201105948
+  chr4: 193574945
+  chr5: 182045439
+  chr6: 172126628
+  chr7: 160567428
+  chr8: 146259331
+  chr9: 150617247
+  chr10: 134758134
+  chr11: 135127769
+  chr12: 133324548
+  chr13: 113566686
+  chr14: 101161492
+  chr15: 99753195
+  chr16: 96330374
+  chr17: 84276897
+  chr18: 80542538
+  chr19: 61707364
+  chr20: 66210255
+  chr21: 45090682
+  chr22: 51324926
+methylation_chunk_size_bp: 25000000
+
+sv_chroms: *autosomes
+sv_input_sets:
+  observed:
+    sv_dosages_template: results/observed_sv_genotyping/pc30_q001_tags/meqtl_inputs/{chrom}/observed_dosages.tsv
+    sv_metadata_template: results/observed_sv_genotyping/pc30_q001_tags/meqtl_inputs/{chrom}/observed_metadata.tsv
+same_chrom_only: true
+sv_batch_size: 25
+
+methylation_pc_counts:
+  - 30
+  - 75
+  - 100
+permutation_seeds:
+  - 104729
+  - 130363
+  - 155921
+  - 181081
+  - 206369
+  - 231533
+  - 256789
+  - 282019
+  - 307261
+  - 332551
+  - 357829
+  - 383143
+  - 408401
+  - 433717
+  - 458963
+  - 484289
+  - 509537
+  - 534827
+  - 560081
+  - 585367
+frequency_burden_sv_table: results/meqtl_cis/chm13_observed_sv_same_chrom/integration/allele_specific_mechanism/all_tested_sv_burden_with_external_frequency.tsv
+gm12878_active_bed: resources/encode_screen_chm13/CHM13v2_GM12878_active_cCREs.bed.gz
+association_pvalue_threshold: 0.0001
+top_per_sv: 10
+write_all_associations: false
+mem_mb_assoc: 8000
+runtime_assoc: 120
+mem_mb_summary: 12000
+runtime_summary: 90

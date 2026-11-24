@@ -1,0 +1,27 @@
+scratch_dir: "scratch/minimap2"
+target_groups: ["Group 3"]
+tr_modes: ["censat_filtered"]
+
+align_modes: ["svim_asm"]
+
+mapq: [0, 1, 2, 3, 4, 5, 10, 20]
+minsvlen: [10]
+minsupport: [1, 2, 3]
+
+min_mapq_svim: [20]
+max_sv_size: [500000]
+query_gap_tolerance: [200]
+reference_gap_tolerance: [200]
+
+sv_mode: ["decompose", "standard"]
+
+fksize: [100000, 200000, 500000]
+
+en_strategy: "best8"
+
+imputation_r2_threshold: 0.1
+cis_windows: [10000000, 0]
+eqtl_peer: 60
+sqtl_peer: 15
+geno_pc: 5
+include_sex: true

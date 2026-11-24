@@ -1,0 +1,61 @@
+configfile: "config/chm13_ccre_enrichment.yaml"
+
+from pathlib import Path
+
+output = Path(config["workflow_output"])
+chroms = list(config["chroms"])
+python_cmd = config.get("python_cmd", "uv run python")
+
+localrules: summarize
+
+rule all:
+    input:
+        output / "chm13_pc30_ccre_enrichment.tsv",
+        output / "chm13_pc30_q001_cpg_annotations.tsv",
+        output / "summary.json",
+
+rule worker:
+    input:
+        associations=config["associations"],
+        reference=config["reference"],
+        screen=config["screen"],
+        gm12878=config["gm12878"],
+    output:
+        annotations=output / "{chrom}.significant_cpg_annotations.tsv",
+        stats=output / "{chrom}.stats.tsv",
+        null=output / "{chrom}.null.npz",
+    resources:
+        mem_mb=int(config.get("worker_mem_mb", 12000)),
+        runtime=int(config.get("worker_runtime", 240)),
+    params:
+        output_dir=output,
+    shell:
+        (
+            "{python_cmd} scripts/analyze_chm13_ccre_enrichment.py worker "
+            "--chrom {wildcards.chrom} --associations {input.associations} "
+            "--matrix-dir {config[matrix_dir]} --reference {input.reference} "
+            "--screen {input.screen} --gm12878 {input.gm12878} "
+            "--activity-dir {config[activity_dir]} --q-max {config[q_max]} "
+            "--n-permutations {config[n_permutations]} --output-dir {params.output_dir}"
+        )
+
+rule summarize:
+    input:
+        annotations=expand(output / "{chrom}.significant_cpg_annotations.tsv", chrom=chroms),
+        stats=expand(output / "{chrom}.stats.tsv", chrom=chroms),
+        null=expand(output / "{chrom}.null.npz", chrom=chroms),
+    output:
+        enrichment=output / "chm13_pc30_ccre_enrichment.tsv",
+        annotations=output / "chm13_pc30_q001_cpg_annotations.tsv",
+        summary=output / "summary.json",
+    resources:
+        mem_mb=8000,
+        runtime=60,
+    params:
+        output_dir=output,
+    shell:
+        (
+            "{python_cmd} scripts/analyze_chm13_ccre_enrichment.py summary "
+            "--chroms {config[chrom_arg]} --n-permutations {config[n_permutations]} "
+            "--output-dir {params.output_dir}"
+        )

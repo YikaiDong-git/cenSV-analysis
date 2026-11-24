@@ -1,0 +1,1520 @@
+{
+"ENSG00000027001": {
+"symbol": "MIPEP"
+},
+"ENSG00000033178": {
+"symbol": "UBA6"
+},
+"ENSG00000041982": {
+"symbol": "TNC"
+},
+"ENSG00000048052": {
+"symbol": "HDAC9"
+},
+"ENSG00000067445": {
+"symbol": "TRO"
+},
+"ENSG00000069345": {
+"symbol": "DNAJA2"
+},
+"ENSG00000072310": {
+"symbol": "SREBF1"
+},
+"ENSG00000074966": {
+"symbol": "TXK"
+},
+"ENSG00000075407": {
+"symbol": "ZNF37A"
+},
+"ENSG00000083750": {
+"symbol": "RRAGB"
+},
+"ENSG00000084090": {
+"symbol": "STARD7"
+},
+"ENSG00000085733": {
+"symbol": "CTTN"
+},
+"ENSG00000088387": {
+"symbol": "DOCK9"
+},
+"ENSG00000089289": {
+"symbol": "IGBP1"
+},
+"ENSG00000096433": {
+"symbol": "ITPR3"
+},
+"ENSG00000099251": {
+"symbol": "HSD17B7P2"
+},
+"ENSG00000099899": {
+"symbol": "TRMT2A"
+},
+"ENSG00000100628": {
+"symbol": "ASB2"
+},
+"ENSG00000100979": {
+"symbol": "PLTP"
+},
+"ENSG00000100994": {
+"symbol": "PYGB"
+},
+"ENSG00000100997": {
+"symbol": "ABHD12"
+},
+"ENSG00000101004": {
+"symbol": "NINL"
+},
+"ENSG00000101444": {
+"symbol": "AHCY"
+},
+"ENSG00000101752": {
+"symbol": "MIB1"
+},
+"ENSG00000101945": {
+"symbol": "SUV39H1"
+},
+"ENSG00000102349": {
+"symbol": "KLF8"
+},
+"ENSG00000104626": {
+"symbol": "ERI1"
+},
+"ENSG00000104738": {
+"symbol": "MCM4"
+},
+"ENSG00000105127": {
+"symbol": "AKAP8"
+},
+"ENSG00000106609": {
+"symbol": "TMEM248"
+},
+"ENSG00000109046": {
+"symbol": "WSB1"
+},
+"ENSG00000109184": {
+"symbol": "DCUN1D4"
+},
+"ENSG00000112679": {
+"symbol": "DUSP22"
+},
+"ENSG00000112992": {
+"symbol": "NNT"
+},
+"ENSG00000115590": {
+"symbol": "IL1R2"
+},
+"ENSG00000119402": {
+"symbol": "FBXW2"
+},
+"ENSG00000121741": {
+"symbol": "ZMYM2"
+},
+"ENSG00000122034": {
+"symbol": "GTF3A"
+},
+"ENSG00000124120": {
+"symbol": "TTPAL"
+},
+"ENSG00000125804": {
+"symbol": "FAM182A"
+},
+"ENSG00000125870": {
+"symbol": "SNRPB2"
+},
+"ENSG00000127863": {
+"symbol": "TNFRSF19"
+},
+"ENSG00000129566": {
+"symbol": "TEP1"
+},
+"ENSG00000129636": {
+"symbol": "ITFG1"
+},
+"ENSG00000130684": {
+"symbol": "ZNF337"
+},
+"ENSG00000132196": {
+"symbol": "HSD17B7"
+},
+"ENSG00000132964": {
+"symbol": "CDK8"
+},
+"ENSG00000133104": {
+"symbol": "SPART"
+},
+"ENSG00000134574": {
+"symbol": "DDB2"
+},
+"ENSG00000134575": {
+"symbol": "ACP2"
+},
+"ENSG00000135605": {
+"symbol": "TEC"
+},
+"ENSG00000138081": {
+"symbol": "FBXO11"
+},
+"ENSG00000139117": {
+"symbol": "CPNE8"
+},
+"ENSG00000139133": {
+"symbol": "ALG10"
+},
+"ENSG00000141030": {
+"symbol": "COPS3"
+},
+"ENSG00000143190": {
+"symbol": "POU2F1"
+},
+"ENSG00000143429": {
+"symbol": "LSP1P4"
+},
+"ENSG00000143971": {
+"symbol": "ETAA1"
+},
+"ENSG00000144026": {
+"symbol": "ZNF514"
+},
+"ENSG00000144028": {
+"symbol": "SNRNP200"
+},
+"ENSG00000145246": {
+"symbol": "ATP10D"
+},
+"ENSG00000146143": {
+"symbol": "PRIM2"
+},
+"ENSG00000147434": {
+"symbol": "CHRNA6"
+},
+"ENSG00000148200": {
+"symbol": "NR6A1"
+},
+"ENSG00000149531": {
+"symbol": "FRG1BP"
+},
+"ENSG00000151883": {
+"symbol": "PARP8"
+},
+"ENSG00000154930": {
+"symbol": "ACSS1"
+},
+"ENSG00000156535": {
+"symbol": "CD109"
+},
+"ENSG00000156755": {
+"symbol": "IGKV1OR-2"
+},
+"ENSG00000158158": {
+"symbol": "CNNM4"
+},
+"ENSG00000158201": {
+"symbol": "ABHD3"
+},
+"ENSG00000159788": {
+"symbol": "RGS12"
+},
+"ENSG00000160326": {
+"symbol": "SLC2A6"
+},
+"ENSG00000162825": {
+"symbol": "NBPF20"
+},
+"ENSG00000163069": {
+"symbol": "SGCB"
+},
+"ENSG00000163071": {
+"symbol": "SPATA18"
+},
+"ENSG00000163138": {
+"symbol": "PACRGL"
+},
+"ENSG00000164111": {
+"symbol": "ANXA5"
+},
+"ENSG00000164808": {
+"symbol": "SPIDR"
+},
+"ENSG00000165102": {
+"symbol": "HGSNAT"
+},
+"ENSG00000165591": {
+"symbol": "FAAH2"
+},
+"ENSG00000167088": {
+"symbol": "SNRPD1"
+},
+"ENSG00000168522": {
+"symbol": "FNTA"
+},
+"ENSG00000168961": {
+"symbol": "LGALS9"
+},
+"ENSG00000170191": {
+"symbol": "NANP"
+},
+"ENSG00000170448": {
+"symbol": "NFXL1"
+},
+"ENSG00000170571": {
+"symbol": "EMB"
+},
+"ENSG00000170873": {
+"symbol": "MTSS1"
+},
+"ENSG00000171469": {
+"symbol": "ZNF561"
+},
+"ENSG00000171865": {
+"symbol": "RNASEH1"
+},
+"ENSG00000171943": {
+"symbol": "SRGAP2C"
+},
+"ENSG00000172014": {
+"symbol": "ANKRD20A4P"
+},
+"ENSG00000172247": {
+"symbol": "C1QTNF4"
+},
+"ENSG00000173041": {
+"symbol": "ZNF680"
+},
+"ENSG00000173917": {
+"symbol": "HOXB2"
+},
+"ENSG00000174501": {
+"symbol": "ANKRD36C"
+},
+"ENSG00000174799": {
+"symbol": "CEP135"
+},
+"ENSG00000175170": {
+"symbol": "FAM182B"
+},
+"ENSG00000175548": {
+"symbol": "ALG10B"
+},
+"ENSG00000176209": {
+"symbol": "SMIM19"
+},
+"ENSG00000177173": {
+"symbol": "NAP1L4P1"
+},
+"ENSG00000177455": {
+"symbol": "CD19"
+},
+"ENSG00000178700": {
+"symbol": "DHFR2"
+},
+"ENSG00000178904": {
+"symbol": "DPY19L3"
+},
+"ENSG00000179222": {
+"symbol": "MAGED1"
+},
+"ENSG00000180229": {
+"symbol": "HERC2P3"
+},
+"ENSG00000181938": {
+"symbol": "GINS3"
+},
+"ENSG00000184470": {
+"symbol": "TXNRD2"
+},
+"ENSG00000185010": {
+"symbol": "F8"
+},
+"ENSG00000185900": {
+"symbol": "POMK"
+},
+"ENSG00000186235": {
+"symbol": "LINC02610"
+},
+"ENSG00000188906": {
+"symbol": "LRRK2"
+},
+"ENSG00000189180": {
+"symbol": "ZNF33A"
+},
+"ENSG00000196369": {
+"symbol": "SRGAP2B"
+},
+"ENSG00000196693": {
+"symbol": "ZNF33B"
+},
+"ENSG00000196757": {
+"symbol": "ZNF700"
+},
+"ENSG00000196912": {
+"symbol": "ANKRD36B"
+},
+"ENSG00000197054": {
+"symbol": "ZNF763"
+},
+"ENSG00000197372": {
+"symbol": "ZNF675"
+},
+"ENSG00000197586": {
+"symbol": "ENTPD6"
+},
+"ENSG00000197647": {
+"symbol": "ZNF433"
+},
+"ENSG00000198324": {
+"symbol": "PHETA1"
+},
+"ENSG00000198455": {
+"symbol": "ZXDB"
+},
+"ENSG00000198885": {
+"symbol": "ITPRIPL1"
+},
+"ENSG00000204272": {
+"symbol": "NBDY"
+},
+"ENSG00000211633": {
+"symbol": "IGKV1D-42"
+},
+"ENSG00000213096": {
+"symbol": "ZNF254"
+},
+"ENSG00000213742": {
+"symbol": "ZNF337-AS1"
+},
+"ENSG00000213904": {
+"symbol": "LIPE-AS1"
+},
+"ENSG00000215190": {
+"symbol": "LINC00680"
+},
+"ENSG00000215548": {
+"symbol": "FRG1JP"
+},
+"ENSG00000219626": {
+"symbol": "FAM228B"
+},
+"ENSG00000221869": {
+"symbol": "CEBPD"
+},
+"ENSG00000223509": {
+"symbol": "WHAMMP1"
+},
+"ENSG00000223839": {
+"symbol": "FAM95B1"
+},
+"ENSG00000224041": {
+"symbol": "IGKV3D-15"
+},
+"ENSG00000225190": {
+"symbol": "PLEKHM1"
+},
+"ENSG00000226029": {
+"symbol": "LINC01772"
+},
+"ENSG00000226067": {
+"symbol": "LINC00623"
+},
+"ENSG00000226763": {
+"symbol": "SRRM5"
+},
+"ENSG00000226950": {
+"symbol": "DANCR"
+},
+"ENSG00000231527": {
+"symbol": "FAM27C"
+},
+"ENSG00000232815": {
+"symbol": "DUX4L50"
+},
+"ENSG00000233695": {
+"symbol": "GAS6-AS1"
+},
+"ENSG00000234665": {
+"symbol": "LERFS"
+},
+"ENSG00000236816": {
+"symbol": "ANKRD20A7P"
+},
+"ENSG00000237119": {
+"symbol": "LINC01056"
+},
+"ENSG00000237357": {
+"symbol": "FAM88E"
+},
+"ENSG00000237510": {
+"symbol": "GPAT2P1"
+},
+"ENSG00000239650": {
+"symbol": "GUSBP4"
+},
+"ENSG00000239975": {
+"symbol": "IGKV1D-33"
+},
+"ENSG00000240382": {
+"symbol": "IGKV1-17"
+},
+"ENSG00000240864": {
+"symbol": "IGKV1-16"
+},
+"ENSG00000242580": {
+"symbol": "IGKV1D-43"
+},
+"ENSG00000242766": {
+"symbol": "IGKV1D-17"
+},
+"ENSG00000243290": {
+"symbol": "IGKV1-12"
+},
+"ENSG00000248049": {
+"symbol": "UBA6-DT"
+},
+"ENSG00000250036": {
+"symbol": "IGKV1D-37"
+},
+"ENSG00000250302": {
+"symbol": "LINC01618"
+},
+"ENSG00000250479": {
+"symbol": "CHCHD10"
+},
+"ENSG00000251141": {
+"symbol": "MRPS30-DT"
+},
+"ENSG00000251546": {
+"symbol": "IGKV1D-39"
+},
+"ENSG00000253729": {
+"symbol": "PRKDC"
+},
+"ENSG00000253998": {
+"symbol": "IGKV2-29"
+},
+"ENSG00000257446": {
+"symbol": "ZNF878"
+},
+"ENSG00000260186": {
+"symbol": "LINC02137"
+},
+"ENSG00000261824": {
+"symbol": "LINC00662"
+},
+"ENSG00000265566": {
+"symbol": "RN7SL605P"
+},
+"ENSG00000266338": {
+"symbol": "NBPF15"
+},
+"ENSG00000266786": {
+"symbol": "LGALS9DP"
+},
+"ENSG00000267575": {
+"symbol": "LINC02987"
+},
+"ENSG00000269713": {
+"symbol": "NBPF9"
+},
+"ENSG00000270231": {
+"symbol": "NBPF8"
+},
+"ENSG00000270392": {
+"symbol": "PFN1P2"
+},
+"ENSG00000270629": {
+"symbol": "NBPF14"
+},
+"ENSG00000271383": {
+"symbol": "NBPF19"
+},
+"ENSG00000271425": {
+"symbol": "NBPF10"
+},
+"ENSG00000272150": {
+"symbol": "NBPF25P"
+},
+"ENSG00000272259": {
+"symbol": "LINC01749"
+},
+"ENSG00000273136": {
+"symbol": "NBPF26"
+},
+"ENSG00000273142": {
+"symbol": "LINC02604"
+},
+"ENSG00000274026": {
+"symbol": "FAM27E3"
+},
+"ENSG00000275131": {
+"symbol": "PDE4DIPP2"
+},
+"ENSG00000275140": {
+"symbol": "SEC22B3P"
+},
+"ENSG00000276291": {
+"symbol": "FRG1HP"
+},
+"ENSG00000276566": {
+"symbol": "IGKV1D-13"
+},
+"ENSG00000278390": {
+"symbol": "KBTBD6-DT"
+},
+"ENSG00000282826": {
+"symbol": "FRG1CP"
+},
+"ENSG00000283930": {
+"symbol": "PLD5P1"
+},
+"ENSG00000286106": {
+"symbol": "NOTCH2NLR"
+},
+"ENSG00000090989": {
+"symbol": "EXOC1"
+},
+"ENSG00000109689": {
+"symbol": "STIM2"
+},
+"ENSG00000115523": {
+"symbol": "GNLY"
+},
+"ENSG00000116815": {
+"symbol": "CD58"
+},
+"ENSG00000120616": {
+"symbol": "EPC1"
+},
+"ENSG00000120798": {
+"symbol": "NR2C1"
+},
+"ENSG00000130513": {
+"symbol": "GDF15"
+},
+"ENSG00000132963": {
+"symbol": "POMP"
+},
+"ENSG00000135622": {
+"symbol": "SEMA4F"
+},
+"ENSG00000143643": {
+"symbol": "TTC13"
+},
+"ENSG00000151835": {
+"symbol": "SACS"
+},
+"ENSG00000154309": {
+"symbol": "DISP1"
+},
+"ENSG00000159884": {
+"symbol": "CCDC107"
+},
+"ENSG00000160255": {
+"symbol": "ITGB2"
+},
+"ENSG00000162298": {
+"symbol": "SYVN1"
+},
+"ENSG00000162408": {
+"symbol": "NOL9"
+},
+"ENSG00000167670": {
+"symbol": "CHAF1A"
+},
+"ENSG00000169062": {
+"symbol": "UPF3A"
+},
+"ENSG00000172005": {
+"symbol": "MAL"
+},
+"ENSG00000188610": {
+"symbol": "FAM72B"
+},
+"ENSG00000188886": {
+"symbol": "ASTL"
+},
+"ENSG00000196664": {
+"symbol": "TLR7"
+},
+"ENSG00000204837": {
+"symbol": "FGF7P3"
+},
+"ENSG00000227536": {
+"symbol": "SOCS5P4"
+},
+"ENSG00000265808": {
+"symbol": "SEC22B"
+},
+"ENSG00000012660": {
+"symbol": "ELOVL5"
+},
+"ENSG00000053900": {
+"symbol": "ANAPC4"
+},
+"ENSG00000080822": {
+"symbol": "CLDND1"
+},
+"ENSG00000099377": {
+"symbol": "HSD3B7"
+},
+"ENSG00000101310": {
+"symbol": "SEC23B"
+},
+"ENSG00000102879": {
+"symbol": "CORO1A"
+},
+"ENSG00000104518": {
+"symbol": "GSDMD"
+},
+"ENSG00000109171": {
+"symbol": "SLAIN2"
+},
+"ENSG00000113387": {
+"symbol": "SUB1"
+},
+"ENSG00000119979": {
+"symbol": "DENND10"
+},
+"ENSG00000126756": {
+"symbol": "UXT"
+},
+"ENSG00000128739": {
+"symbol": "SNRPN"
+},
+"ENSG00000128815": {
+"symbol": "WDFY4"
+},
+"ENSG00000143156": {
+"symbol": "NME7"
+},
+"ENSG00000147535": {
+"symbol": "PLPP5"
+},
+"ENSG00000168763": {
+"symbol": "CNNM3"
+},
+"ENSG00000182220": {
+"symbol": "ATP6AP2"
+},
+"ENSG00000239855": {
+"symbol": "IGKV1-6"
+},
+"ENSG00000242371": {
+"symbol": "IGKV1-39"
+},
+"ENSG00000248866": {
+"symbol": "USP46-DT"
+},
+"ENSG00000250067": {
+"symbol": "YJEFN3"
+},
+"ENSG00000261247": {
+"symbol": "GOLGA8T"
+},
+"ENSG00000272734": {
+"symbol": "ADIRF-AS1"
+},
+"ENSG00000273173": {
+"symbol": "SNURF"
+},
+"ENSG00000279058": {
+"symbol": "AGAP14P"
+},
+"ENSG00000036054": {
+"symbol": "TBC1D23"
+},
+"ENSG00000114354": {
+"symbol": "TFG"
+},
+"ENSG00000117090": {
+"symbol": "SLAMF1"
+},
+"ENSG00000137100": {
+"symbol": "DCTN3"
+},
+"ENSG00000148057": {
+"symbol": "IDNK"
+},
+"ENSG00000166750": {
+"symbol": "SLFN5"
+},
+"ENSG00000167397": {
+"symbol": "VKORC1"
+},
+"ENSG00000169994": {
+"symbol": "MYO7B"
+},
+"ENSG00000172650": {
+"symbol": "AGAP5"
+},
+"ENSG00000175061": {
+"symbol": "SNHG29"
+},
+"ENSG00000175395": {
+"symbol": "ZNF25"
+},
+"ENSG00000176783": {
+"symbol": "RUFY1"
+},
+"ENSG00000179299": {
+"symbol": "NSUN7"
+},
+"ENSG00000180104": {
+"symbol": "EXOC3"
+},
+"ENSG00000183336": {
+"symbol": "BOLA2"
+},
+"ENSG00000206149": {
+"symbol": "HERC2P9"
+},
+"ENSG00000213397": {
+"symbol": "HAUS7"
+},
+"ENSG00000231172": {
+"symbol": "EVA1A-AS"
+},
+"ENSG00000243660": {
+"symbol": "ZNF487"
+},
+"ENSG00000253305": {
+"symbol": "PCDHGB6"
+},
+"ENSG00000261740": {
+"symbol": "BOLA2-SMG1P6"
+},
+"ENSG00000263956": {
+"symbol": "NBPF11"
+},
+"ENSG00000283196": {
+"symbol": "ENSG00000283196"
+},
+"ENSG00000276805": {
+"symbol": "ENSG00000276805"
+},
+"ENSG00000287979": {
+"symbol": "ENSG00000287979"
+},
+"ENSG00000279253": {
+"symbol": "ENSG00000279253"
+},
+"ENSG00000280296": {
+"symbol": "ENSG00000280296"
+},
+"ENSG00000273047": {
+"symbol": "ENSG00000273047"
+},
+"ENSG00000223804": {
+"symbol": "ENSG00000223804"
+},
+"ENSG00000215146": {
+"symbol": "ENSG00000215146"
+},
+"ENSG00000281741": {
+"symbol": "ENSG00000281741"
+},
+"ENSG00000228107": {
+"symbol": "ENSG00000228107"
+},
+"ENSG00000204556": {
+"symbol": "ENSG00000204556"
+},
+"ENSG00000286185": {
+"symbol": "ENSG00000286185"
+},
+"ENSG00000276071": {
+"symbol": "ENSG00000276071"
+},
+"ENSG00000281571": {
+"symbol": "ENSG00000281571"
+},
+"ENSG00000235893": {
+"symbol": "ENSG00000235893"
+},
+"ENSG00000284116": {
+"symbol": "ENSG00000284116"
+},
+"ENSG00000268362": {
+"symbol": "ENSG00000268362"
+},
+"ENSG00000228897": {
+"symbol": "ENSG00000228897"
+},
+"ENSG00000281179": {
+"symbol": "ENSG00000281179"
+},
+"ENSG00000279789": {
+"symbol": "ENSG00000279789"
+},
+"ENSG00000227486": {
+"symbol": "ENSG00000227486"
+},
+"ENSG00000279425": {
+"symbol": "ENSG00000279425"
+},
+"ENSG00000285454": {
+"symbol": "ENSG00000285454"
+},
+"ENSG00000250090": {
+"symbol": "ENSG00000250090"
+},
+"ENSG00000257355": {
+"symbol": "ENSG00000257355"
+},
+"ENSG00000286905": {
+"symbol": "ENSG00000286905"
+},
+"ENSG00000254673": {
+"symbol": "ENSG00000254673"
+},
+"ENSG00000243501": {
+"symbol": "ENSG00000243501"
+},
+"ENSG00000214265": {
+"symbol": "ENSG00000214265"
+},
+"ENSG00000225411": {
+"symbol": "ENSG00000225411"
+},
+"ENSG00000151849": {
+"symbol": "CPAP"
+},
+"ENSG00000146733": {
+"symbol": "PSPH"
+},
+"ENSG00000101182": {
+"symbol": "PSMA7"
+},
+"ENSG00000139116": {
+"symbol": "KIF21A"
+},
+"ENSG00000231584": {
+"symbol": "FAHD2CP"
+},
+"ENSG00000066336": {
+"symbol": "SPI1"
+},
+"ENSG00000102910": {
+"symbol": "LONP2"
+},
+"ENSG00000204271": {
+"symbol": "SPIN3"
+},
+"ENSG00000122547": {
+"symbol": "EEPD1"
+},
+"ENSG00000158864": {
+"symbol": "NDUFS2"
+},
+"ENSG00000225321": {
+"symbol": "LINC01427"
+},
+"ENSG00000254634": {
+"symbol": "SMG1P6"
+},
+"ENSG00000165156": {
+"symbol": "ZHX1"
+},
+"ENSG00000175087": {
+"symbol": "PDIK1L"
+},
+"ENSG00000261520": {
+"symbol": "DLGAP1-AS5"
+},
+"ENSG00000211632": {
+"symbol": "IGKV3D-11"
+},
+"ENSG00000140577": {
+"symbol": "CRTC3"
+},
+"ENSG00000186638": {
+"symbol": "KIF24"
+},
+"ENSG00000236529": {
+"symbol": "LINC03129"
+},
+"ENSG00000279352": {
+"symbol": "ENSG00000279352"
+},
+"ENSG00000154655": {
+"symbol": "L3MBTL4"
+},
+"ENSG00000068394": {
+"symbol": "GPKOW"
+},
+"ENSG00000269110": {
+"symbol": "ENSG00000269110"
+},
+"ENSG00000168575": {
+"symbol": "SLC20A2"
+},
+"ENSG00000124731": {
+"symbol": "TREM1"
+},
+"ENSG00000213337": {
+"symbol": "ANKRD39"
+},
+"ENSG00000164967": {
+"symbol": "RPP25L"
+},
+"ENSG00000163126": {
+"symbol": "ANKRD23"
+},
+"ENSG00000165511": {
+"symbol": "ZNF22-AS1"
+},
+"ENSG00000129667": {
+"symbol": "RHBDF2"
+},
+"ENSG00000158352": {
+"symbol": "SHROOM4"
+},
+"ENSG00000130584": {
+"symbol": "ZBTB46"
+},
+"ENSG00000125970": {
+"symbol": "RALY"
+},
+"ENSG00000225564": {
+"symbol": "LINC01492"
+},
+"ENSG00000286837": {
+"symbol": "ENSG00000286837"
+},
+"ENSG00000249850": {
+"symbol": "KRT18P31"
+},
+"ENSG00000181638": {
+"symbol": "ZFP41"
+},
+"ENSG00000132664": {
+"symbol": "POLR3F"
+},
+"ENSG00000107643": {
+"symbol": "MAPK8"
+},
+"ENSG00000124257": {
+"symbol": "NEURL2"
+},
+"ENSG00000101442": {
+"symbol": "ACTR5"
+},
+"ENSG00000180712": {
+"symbol": "LINC02363"
+},
+"ENSG00000237440": {
+"symbol": "ZNF737"
+},
+"ENSG00000282870": {
+"symbol": "FRG1DP"
+},
+"ENSG00000266554": {
+"symbol": "LINC01443"
+},
+"ENSG00000021574": {
+"symbol": "SPAST"
+},
+"ENSG00000273820": {
+"symbol": "USP27X"
+},
+"ENSG00000228325": {
+"symbol": "IGKV3D-7"
+},
+"ENSG00000075539": {
+"symbol": "FRYL"
+},
+"ENSG00000105705": {
+"symbol": "SUGP1"
+},
+"ENSG00000286782": {
+"symbol": "ENSG00000286782"
+},
+"ENSG00000204161": {
+"symbol": "TMEM273"
+},
+"ENSG00000153495": {
+"symbol": "TEX29"
+},
+"ENSG00000250571": {
+"symbol": "GLI4"
+},
+"ENSG00000225855": {
+"symbol": "RUSC1-AS1"
+},
+"ENSG00000198105": {
+"symbol": "ZNF248"
+},
+"ENSG00000264668": {
+"symbol": "ENSG00000264668"
+},
+"ENSG00000101199": {
+"symbol": "ARFGAP1"
+},
+"ENSG00000162139": {
+"symbol": "NEU3"
+},
+"ENSG00000101624": {
+"symbol": "CEP76"
+},
+"ENSG00000105202": {
+"symbol": "FBL"
+},
+"ENSG00000116874": {
+"symbol": "WARS2"
+},
+"ENSG00000129351": {
+"symbol": "ILF3"
+},
+"ENSG00000142347": {
+"symbol": "MYO1F"
+},
+"ENSG00000155366": {
+"symbol": "RHOC"
+},
+"ENSG00000158850": {
+"symbol": "B4GALT3"
+},
+"ENSG00000170949": {
+"symbol": "ZNF160"
+},
+"ENSG00000196466": {
+"symbol": "ZNF799"
+},
+"ENSG00000266053": {
+"symbol": "NDUFV2-AS1"
+},
+"ENSG00000278903": {
+"symbol": "ENSG00000278903"
+},
+"ENSG00000280164": {
+"symbol": "ENSG00000280164"
+},
+"ENSG00000286019": {
+"symbol": "NOTCH2NLB"
+},
+"ENSG00000286138": {
+"symbol": "ENSG00000286138"
+},
+"ENSG00000115339": {
+"symbol": "GALNT3"
+},
+"ENSG00000276517": {
+"symbol": "ENSG00000276517"
+},
+"ENSG00000115604": {
+"symbol": "IL18R1"
+},
+"ENSG00000134250": {
+"symbol": "NOTCH2"
+},
+"ENSG00000185760": {
+"symbol": "KCNQ5"
+},
+"ENSG00000134262": {
+"symbol": "AP4B1"
+},
+"ENSG00000286156": {
+"symbol": "BMS1P23"
+},
+"ENSG00000158417": {
+"symbol": "EIF5B"
+},
+"ENSG00000144199": {
+"symbol": "FAHD2B"
+},
+"ENSG00000135951": {
+"symbol": "TSGA10"
+},
+"ENSG00000211598": {
+"symbol": "IGKV4-1"
+},
+"ENSG00000168906": {
+"symbol": "MAT2A"
+},
+"ENSG00000183281": {
+"symbol": "PLGLB1"
+},
+"ENSG00000135976": {
+"symbol": "ANKRD36"
+},
+"ENSG00000274471": {
+"symbol": "ENSG00000274471"
+},
+"ENSG00000104059": {
+"symbol": "ENTREP2"
+},
+"ENSG00000285444": {
+"symbol": "ENSG00000285444"
+},
+"ENSG00000102796": {
+"symbol": "DHRS12"
+},
+"ENSG00000262262": {
+"symbol": "ENSG00000262262"
+},
+"ENSG00000168421": {
+"symbol": "RHOH"
+},
+"ENSG00000168488": {
+"symbol": "ATXN2L"
+},
+"ENSG00000103522": {
+"symbol": "IL21R"
+},
+"ENSG00000137054": {
+"symbol": "POLR1E"
+},
+"ENSG00000204778": {
+"symbol": "ZNG1DP"
+},
+"ENSG00000141570": {
+"symbol": "CBX8"
+},
+"ENSG00000101019": {
+"symbol": "UQCC1"
+},
+"ENSG00000196756": {
+"symbol": "SNHG17"
+},
+"ENSG00000070610": {
+"symbol": "GBA2"
+},
+"ENSG00000137106": {
+"symbol": "GRHPR"
+},
+"ENSG00000122696": {
+"symbol": "SLC25A51"
+},
+"ENSG00000279608": {
+"symbol": "ENSG00000279608"
+},
+"ENSG00000285732": {
+"symbol": "ENSG00000285732"
+},
+"ENSG00000005175": {
+"symbol": "RPAP3"
+},
+"ENSG00000226824": {
+"symbol": "ENSG00000226824"
+},
+"ENSG00000154710": {
+"symbol": "RABGEF1"
+},
+"ENSG00000185290": {
+"symbol": "NUPR2"
+},
+"ENSG00000284461": {
+"symbol": "ENSG00000284461"
+},
+"ENSG00000126522": {
+"symbol": "ASL"
+},
+"ENSG00000128438": {
+"symbol": "TBC1D27P"
+},
+"ENSG00000134825": {
+"symbol": "TMEM258"
+},
+"ENSG00000149187": {
+"symbol": "CELF1"
+},
+"ENSG00000187049": {
+"symbol": "TMEM216"
+},
+"ENSG00000085382": {
+"symbol": "HACE1"
+},
+"ENSG00000118971": {
+"symbol": "CCND2"
+},
+"ENSG00000111785": {
+"symbol": "RIC8B"
+},
+"ENSG00000197971": {
+"symbol": "MBP"
+},
+"ENSG00000101109": {
+"symbol": "STK4"
+},
+"ENSG00000276550": {
+"symbol": "HERC2P2"
+},
+"ENSG00000101493": {
+"symbol": "ZNF516"
+},
+"ENSG00000168234": {
+"symbol": "TTC39C"
+},
+"ENSG00000169155": {
+"symbol": "ZBTB43"
+},
+"ENSG00000197323": {
+"symbol": "TRIM33"
+},
+"ENSG00000183508": {
+"symbol": "TENT5C"
+},
+"ENSG00000251022": {
+"symbol": "THAP9-AS1"
+},
+"ENSG00000171208": {
+"symbol": "NETO2"
+},
+"ENSG00000151006": {
+"symbol": "PRSS53"
+},
+"ENSG00000103490": {
+"symbol": "PYCARD"
+},
+"ENSG00000255439": {
+"symbol": "ENSG00000255439"
+},
+"ENSG00000103472": {
+"symbol": "RRN3P2"
+},
+"ENSG00000284671": {
+"symbol": "ENSG00000284671"
+},
+"ENSG00000101084": {
+"symbol": "RAB5IF"
+},
+"ENSG00000259399": {
+"symbol": "TGIF2-RAB5IF"
+},
+"ENSG00000197122": {
+"symbol": "SRC"
+},
+"ENSG00000088340": {
+"symbol": "FER1L4"
+},
+"ENSG00000118707": {
+"symbol": "TGIF2"
+},
+"ENSG00000131069": {
+"symbol": "ACSS2"
+},
+"ENSG00000101445": {
+"symbol": "PPP1R16B"
+},
+"ENSG00000180879": {
+"symbol": "SSR4"
+},
+"ENSG00000174718": {
+"symbol": "RESF1"
+},
+"ENSG00000232987": {
+"symbol": "LINC01219"
+},
+"ENSG00000125485": {
+"symbol": "DDX31"
+},
+"ENSG00000273008": {
+"symbol": "CSGALNACT2-DT"
+},
+"ENSG00000226937": {
+"symbol": "CEP164P1"
+},
+"ENSG00000265018": {
+"symbol": "AGAP12P"
+},
+"ENSG00000263766": {
+"symbol": "KPNB1-DT"
+},
+"ENSG00000035862": {
+"symbol": "TIMP2"
+},
+"ENSG00000101391": {
+"symbol": "CDK5RAP1"
+},
+"ENSG00000260257": {
+"symbol": "ENSG00000260257"
+},
+"ENSG00000088543": {
+"symbol": "C3orf18"
+},
+"ENSG00000171241": {
+"symbol": "SHCBP1"
+},
+"ENSG00000092607": {
+"symbol": "TBX15"
+},
+"ENSG00000121966": {
+"symbol": "CXCR4"
+},
+"ENSG00000168899": {
+"symbol": "VAMP5"
+},
+"ENSG00000238113": {
+"symbol": "LINC01410"
+},
+"ENSG00000179151": {
+"symbol": "EDC3"
+},
+"ENSG00000081665": {
+"symbol": "ZNF506"
+},
+"ENSG00000105514": {
+"symbol": "RAB3D"
+},
+"ENSG00000105518": {
+"symbol": "TMEM205"
+},
+"ENSG00000198276": {
+"symbol": "UCKL1"
+},
+"ENSG00000134748": {
+"symbol": "PRPF38A"
+},
+"ENSG00000125107": {
+"symbol": "CNOT1"
+},
+"ENSG00000132849": {
+"symbol": "PATJ"
+},
+"ENSG00000162819": {
+"symbol": "BROX"
+},
+"ENSG00000268119": {
+"symbol": "ENSG00000268119"
+},
+"ENSG00000271032": {
+"symbol": "ENSG00000271032"
+},
+"ENSG00000061656": {
+"symbol": "SPAG4"
+},
+"ENSG00000284776": {
+"symbol": "ENSG00000284776"
+},
+"ENSG00000232388": {
+"symbol": "SMIM26"
+},
+"ENSG00000286546": {
+"symbol": "ENSG00000286546"
+},
+"ENSG00000256771": {
+"symbol": "ZNF253"
+},
+"ENSG00000184635": {
+"symbol": "ZNF93"
+},
+"ENSG00000087088": {
+"symbol": "BAX"
+},
+"ENSG00000239819": {
+"symbol": "IGKV1D-8"
+},
+"ENSG00000287362": {
+"symbol": "ENSG00000287362"
+},
+"ENSG00000203867": {
+"symbol": "RBM20"
+},
+"ENSG00000239883": {
+"symbol": "PARGP1"
+},
+"ENSG00000224597": {
+"symbol": "SVIL-AS1"
+},
+"ENSG00000244682": {
+"symbol": "FCGR2C"
+},
+"ENSG00000215784": {
+"symbol": "FAM72D"
+},
+"ENSG00000065600": {
+"symbol": "PACC1"
+},
+"ENSG00000133048": {
+"symbol": "CHI3L1"
+},
+"ENSG00000173208": {
+"symbol": "ABCD2"
+},
+"ENSG00000151229": {
+"symbol": "SLC2A13"
+},
+"ENSG00000125249": {
+"symbol": "RAP2A"
+},
+"ENSG00000136169": {
+"symbol": "SETDB2"
+},
+"ENSG00000102445": {
+"symbol": "RUBCNL"
+},
+"ENSG00000102524": {
+"symbol": "TNFSF13B"
+},
+"ENSG00000237636": {
+"symbol": "ANKRD26P3"
+},
+"ENSG00000078699": {
+"symbol": "CBFA2T2"
+},
+"ENSG00000101294": {
+"symbol": "HM13"
+},
+"ENSG00000249700": {
+"symbol": "SRD5A3-AS1"
+},
+"ENSG00000014824": {
+"symbol": "SLC30A9"
+},
+"ENSG00000163694": {
+"symbol": "RBM47"
+},
+"ENSG00000135974": {
+"symbol": "C2orf49"
+},
+"ENSG00000131269": {
+"symbol": "ABCB7"
+},
+"ENSG00000226803": {
+"symbol": "ZNF451-AS1"
+},
+"ENSG00000112118": {
+"symbol": "MCM3"
+},
+"ENSG00000112964": {
+"symbol": "GHR"
+},
+"ENSG00000203499": {
+"symbol": "IQANK1"
+},
+"ENSG00000286405": {
+"symbol": "ENSG00000286405"
+},
+"ENSG00000253846": {
+"symbol": "PCDHGA10"
+},
+"ENSG00000272092": {
+"symbol": "ENSG00000272092"
+},
+"ENSG00000288225": {
+"symbol": "ENSG00000288225"
+},
+"ENSG00000288586": {
+"symbol": "ENSG00000288586"
+},
+"ENSG00000089280": {
+"symbol": "FUS"
+},
+"ENSG00000215912": {
+"symbol": "TTC34"
+},
+"ENSG00000137814": {
+"symbol": "HAUS2"
+},
+"ENSG00000264343": {
+"symbol": "NOTCH2NLA"
+},
+"ENSG00000274615": {
+"symbol": "NPEPPSP1"
+},
+"ENSG00000119013": {
+"symbol": "NDUFB3"
+},
+"ENSG00000125630": {
+"symbol": "POLR1B"
+}
+}

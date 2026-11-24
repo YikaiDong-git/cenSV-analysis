@@ -1,0 +1,124 @@
+workflow_output: results/meqtl_cis/autosomes_same_chrom
+
+methylation_root: ${CENSV_LAB}/shared/1KG_ONT/precalled_methylation/hg38_modkit
+methylation_file_suffix: _combined.split5hmc.bed.gz
+methylation_manifest: results/meqtl_cis/autosomes_same_chrom/manifests/hg38_methylation_manifest.tsv
+tabix_methylation: true
+indexed_methylation_dir: results/meqtl_pilot/default_chr1/indexed_methylation
+tabix_threads: 2
+copy_non_bgzf_methylation: false
+methylation_index_backend: duckhts
+methylation_backend: duckhts
+methylation_chroms:
+  - chr1
+  - chr2
+  - chr3
+  - chr4
+  - chr5
+  - chr6
+  - chr7
+  - chr8
+  - chr9
+  - chr10
+  - chr11
+  - chr12
+  - chr13
+  - chr14
+  - chr15
+  - chr16
+  - chr17
+  - chr18
+  - chr19
+  - chr20
+  - chr21
+  - chr22
+chrom_sizes:
+  chr1: 248956422
+  chr2: 242193529
+  chr3: 198295559
+  chr4: 190214555
+  chr5: 181538259
+  chr6: 170805979
+  chr7: 159345973
+  chr8: 145138636
+  chr9: 138394717
+  chr10: 133797422
+  chr11: 135086622
+  chr12: 133275309
+  chr13: 114364328
+  chr14: 107043718
+  chr15: 101991189
+  chr16: 90338345
+  chr17: 83257441
+  chr18: 80373285
+  chr19: 58617616
+  chr20: 64444167
+  chr21: 46709983
+  chr22: 50818468
+methylation_chunk_size_bp: 25000000
+coverage_min: 10
+min_sample_fraction: 0.75
+max_sites_per_chunk: 0
+assume_sorted_methylation: true
+
+sv_chroms:
+  - chr1
+  - chr2
+  - chr3
+  - chr4
+  - chr5
+  - chr6
+  - chr7
+  - chr8
+  - chr9
+  - chr10
+  - chr11
+  - chr12
+  - chr13
+  - chr14
+  - chr15
+  - chr16
+  - chr17
+  - chr18
+  - chr19
+  - chr20
+  - chr21
+  - chr22
+sv_dosages_template: results/imputation/decompose/cosine_nj/best8_mapq20_minsvlen10_maxpart10_partdist1000_maxedit200_maxsv500000_qgap200_rgap200/{chrom}/{chrom}_imputed_dosages.tsv
+sv_metadata_template: results/imputation/decompose/cosine_nj/best8_mapq20_minsvlen10_maxpart10_partdist1000_maxedit200_maxsv500000_qgap200_rgap200/{chrom}/{chrom}_imputation_summary.tsv
+same_chrom_only: true
+sv_categories:
+  - original_decomposed
+min_cv_r2: 0.3
+min_svfreq: 0.01
+sv_batch_size: 50
+
+upstream_covariates: resources/MAGE/eqtl_covariates.tab.gz
+include_sex: true
+n_genotype_pcs: 5
+include_platform_covariates: true
+methylation_pc_counts:
+  - 5
+  - 10
+  - 20
+  - 30
+  - 75
+  - 100
+legacy_methylation_pc_source_count: 30
+pc_max_sites: 200000
+pc_matrix_chunk_rows: 20000
+
+association_pvalue_threshold: 0.0001
+top_per_sv: 10
+write_all_associations: false
+
+mem_mb_tabix: 2000
+runtime_tabix: 120
+mem_mb_matrix: 16000
+runtime_matrix: 240
+mem_mb_methylation_pcs: 12000
+runtime_methylation_pcs: 240
+mem_mb_assoc: 8000
+runtime_assoc: 120
+mem_mb_summary: 8000
+runtime_summary: 60

@@ -1,0 +1,58 @@
+analysis_stage: complete_mac8_q01_source_locus_conditioning
+workflow_output: results/meqtl_mac8_all_discovery_conditioning
+canonical_design: results/meqtl_cis/chm13_observed_sv_robust_mac8_pc10/shared/canonical_design.npz
+python_cmd: uv run python
+rscript_cmd: pixi run Rscript
+discovery_q_max: 0.01
+discoveries:
+  cis: results/meqtl_cis/chm13_observed_sv_robust_mac8_pc10/summary/association_results.tsv.gz
+  trans_global: results/meqtl_trans/chm13_observed_sv_all_family_pc10_mac8/summary/global_pair_discoveries_physical_family.tsv.gz
+  trans_acat: results/meqtl_trans/chm13_observed_sv_all_family_pc10_mac8/summary/acat_10mb/localized_physical_family_q0.01.tsv.gz
+trans_mapping:
+  pairs: results/meqtl_trans/chm13_observed_sv_all_family_pc10_followup/manifests/pairs.tsv.gz
+  svs: results/meqtl_trans/chm13_observed_sv_all_family_pc10_followup/manifests/svs.tsv
+source_job_manifest: results/meqtl_cis/chm13_observed_sv_same_chrom/manifests/job_manifest.tsv
+matrix_dir: results/meqtl_cis/chm13_native_same_chrom/matrices
+expected:
+  pairs: 465
+  cis_pairs: 418
+  trans_pairs: 47
+  trans_global_pairs: 42
+  trans_acat_pairs: 46
+  unique_svs: 47
+outcome_batch_size: 10
+min_complete_samples: 112
+fixed_pc_count: 10
+maf_min: 0.01
+min_site_call_rate: 0.8
+min_dp: 5
+min_gq: 5
+max_raw_snps: 250000
+max_susie_snps: 1000
+max_condition_snps: 40
+condition_ld_r2_max: 0.8
+ridge_folds: 5
+random_seed: 200003
+panels:
+  ont_source_locus:
+    interpretation: same-participant sensitivity callset; not independent replication
+    vcf_template: results/observed_sv_genotyping/pc30_q001_tags/chm13_snp_panel/merged/{chrom}.vcf.gz
+    coverage_template: results/observed_sv_genotyping/pc30_q001_tags/chm13_snp_panel/regions/{chrom}.bed
+    available_windows_bp: [1000000, 5000000]
+  joint_chm13_source_locus:
+    interpretation: same-participant sensitivity callset; not independent replication
+    vcf_template: results/meqtl_cis/chm13_observed_sv_same_chrom/snp_conditioning_pc10_comprehensive/panel_preparation/joint_chm13/vcf/{chrom}.vcf.gz
+    coverage_template: results/meqtl_cis/chm13_observed_sv_same_chrom/snp_conditioning_pc10_comprehensive/panel_preparation/regions/{chrom}.bed
+    available_windows_bp: [1000000, 5000000, 10000000, 20000000]
+robustness:
+  susie_sv_pip_min: 0.9
+  bh_q_max: 0.05
+  minimum_supported_windows: 2
+validation:
+  max_abs_log10_p_error: 0.000001
+  max_abs_beta_error: 0.00000001
+target_followup:
+  distance_min_bp: 20000000
+scheduler:
+  max_jobs: 100
+  allowed_nodes: [node01, node02, node06]

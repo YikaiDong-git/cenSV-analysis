@@ -1,0 +1,139 @@
+configfile: "config/meqtl_mac8_scientific_review.yaml"
+
+from pathlib import Path
+
+root = Path(config["workflow_output"])
+chroms = list(config["chroms"])
+script = "scripts/audit_mac8_scientific_review.py"
+figure_script = "scripts/plot_mac8_review_figures.py"
+
+localrules: filter_active_svs, prepare, narrative_figures
+
+rule all:
+    input:
+        root / "coverage_audit_summary.json",
+        root / "depth_audit_pair_results.tsv.gz",
+        root / "tested_sv_censat_annotations.tsv",
+        root / "cpg_censat_annotations.tsv.gz",
+        root / "effect_direction_by_satellite_distance.tsv",
+        root / "fig1_censat_periodicity.png",
+        config["figure2_output"],
+        config["figure4_output"],
+        config["figure_summary_output"],
+        root / "fig2_satellite_direction_coverage.png",
+
+rule filter_active_svs:
+    input:
+        physical=config["tested_svs"],
+        active=config["active_svs"],
+    output:
+        root / "active_tested_svs.tsv",
+    shell:
+        (
+            "uv run python scripts/filter_mac8_active_svs.py --physical-families {input.physical} "
+            "--active-families {input.active} --output {output}"
+        )
+
+rule prepare:
+    input:
+        pairs=config["pairs"],
+        cis=config["cis_associations"],
+        jobs=config["source_jobs"],
+        controls=config["matched_controls"],
+        svs=root / "active_tested_svs.tsv",
+        censat=config["censat"],
+    output:
+        pairs=root / "audit_pairs.tsv.gz",
+        features=root / "depth_features.tsv.gz",
+        cpgs=root / "cpg_censat_annotations.tsv.gz",
+        svs=root / "tested_sv_censat_annotations.tsv",
+        summary=root / "prepare_summary.json",
+    shell:
+        (
+            "uv run {script} prepare --pairs {input.pairs} --cis-associations {input.cis} "
+            "--source-jobs {input.jobs} --matched-controls {input.controls} "
+            "--tested-svs {input.svs} --censat {input.censat} "
+            "--tail-p {config[tail_p]} --discovery-q {config[discovery_q]} "
+            "--period-bp {config[period_bp]} --period-tolerance {config[period_tolerance]} "
+            "--permutations {config[permutations]} --output-dir {root}"
+        )
+
+rule narrative_figures:
+    input:
+        audit=root / "depth_audit_pair_results.tsv.gz",
+        cpgs=root / "cpg_censat_annotations.tsv.gz",
+        trans=config["trans_overlap"],
+        svs=config["tested_svs"],
+        design=config["trans_design"],
+        fai=config["reference_fai"],
+    output:
+        fig2=config["figure2_output"],
+        fig4=config["figure4_output"],
+        summary=config["figure_summary_output"],
+    shell:
+        (
+            "uv run {figure_script} --depth-audit {input.audit} --cpg-censat {input.cpgs} "
+            "--trans-overlap {input.trans} --tested-svs {input.svs} "
+            "--design-npz {input.design} --reference-fai {input.fai} "
+            "--output-figure2 {output.fig2} --output-figure4 {output.fig4} "
+            "--output-summary {output.summary}"
+        )
+
+rule extract_depth:
+    input:
+        features=root / "depth_features.tsv.gz",
+        manifest=config["methylation_manifest"],
+        design=config["cis_design"],
+    output:
+        depth=root / "chromosomes/{chrom}.depth.tsv.gz",
+        summary=root / "chromosomes/{chrom}.depth_summary.json",
+    resources:
+        mem_mb=int(config["extract_mem_mb"]),
+        runtime=int(config["extract_runtime"]),
+    shell:
+        (
+            "uv run {script} extract-depth --features {input.features} "
+            "--methylation-manifest {input.manifest} --design {input.design} "
+            "--chrom {wildcards.chrom} --output {output.depth} --summary {output.summary}"
+        )
+
+rule analyze_chrom:
+    input:
+        pairs=root / "audit_pairs.tsv.gz",
+        depth=root / "chromosomes/{chrom}.depth.tsv.gz",
+        design=config["cis_design"],
+    output:
+        audit=root / "chromosomes/{chrom}.audit.tsv.gz",
+        simulation=root / "chromosomes/{chrom}.simulation.tsv.gz",
+    resources:
+        mem_mb=int(config["analyze_mem_mb"]),
+        runtime=int(config["analyze_runtime"]),
+    shell:
+        (
+            "uv run {script} analyze-chrom --pairs {input.pairs} --depth {input.depth} "
+            "--design {input.design} --chrom {wildcards.chrom} "
+            "--coverage-min {config[coverage_min]} --simulations {config[simulations]} "
+            "--output {output.audit} --simulation-output {output.simulation}"
+        )
+
+rule summarize:
+    input:
+        audits=expand(root / "chromosomes/{chrom}.audit.tsv.gz", chrom=chroms),
+        simulations=expand(root / "chromosomes/{chrom}.simulation.tsv.gz", chrom=chroms),
+        svs=root / "tested_sv_censat_annotations.tsv",
+        cpgs=root / "cpg_censat_annotations.tsv.gz",
+    output:
+        summary=root / "coverage_audit_summary.json",
+        results=root / "depth_audit_pair_results.tsv.gz",
+        direction=root / "effect_direction_by_satellite_distance.tsv",
+        fig1=root / "fig1_censat_periodicity.png",
+        fig2=root / "fig2_satellite_direction_coverage.png",
+    resources:
+        mem_mb=int(config["summary_mem_mb"]),
+        runtime=int(config["summary_runtime"]),
+    shell:
+        (
+            "uv run {script} summarize --output-dir {root} "
+            "--material-retention {config[material_retention]} "
+            "--material-loss-fraction {config[material_loss_fraction]}"
+        )

@@ -1,0 +1,381 @@
+configfile: "config/meqtl_cis_autosomes.yaml"
+
+import pandas as pd
+from pathlib import Path
+from snakemake.exceptions import WorkflowError
+
+workflow_output = Path(config["workflow_output"])
+manifest_dir = workflow_output / "manifests"
+matrix_dir = workflow_output / "matrices"
+covariate_dir = workflow_output / "covariates"
+jobs_dir = workflow_output / "jobs"
+summary_dir = workflow_output / "summary"
+
+job_manifest_path = manifest_dir / "job_manifest.tsv"
+chunk_manifest_path = manifest_dir / "methylation_chunks.tsv"
+sample_path = manifest_dir / "overlap_samples.txt"
+overlap_methyl_manifest = manifest_dir / "overlap_methylation_samples.tsv"
+
+if not job_manifest_path.exists():
+    raise WorkflowError(
+        f"Missing {job_manifest_path}. Run scripts/submit_meqtl_cis_snakemake.sh first "
+        "or run scripts/build_methylation_manifest.py and scripts/prepare_meqtl_manifest.py."
+    )
+
+job_manifest = pd.read_csv(job_manifest_path, sep="\t")
+chunk_manifest = pd.read_csv(chunk_manifest_path, sep="\t").set_index("chunk_id")
+overlap_methylation_manifest = pd.read_csv(overlap_methyl_manifest, sep="\t")
+job_ids = job_manifest["job_id"].astype(str).tolist()
+job_lookup = job_manifest.set_index("job_id").to_dict(orient="index")
+chunk_ids = chunk_manifest.index.astype(str).tolist()
+sample_ids = overlap_methylation_manifest["sample_id"].astype(str).tolist()
+sample_lookup = overlap_methylation_manifest.set_index("sample_id").to_dict(orient="index")
+matrix_outputs = expand(matrix_dir / "{chunk_id}.methylation.tsv.gz", chunk_id=chunk_ids)
+matrix_summary_outputs = expand(matrix_dir / "{chunk_id}.summary.json", chunk_id=chunk_ids)
+
+pc_counts = [int(x) for x in config.get("methylation_pc_counts", [config.get("n_methylation_pcs", 5)])]
+pc_counts = sorted(set(pc_counts))
+pc_labels = [f"pc{n}" for n in pc_counts]
+pc_count_lookup = dict(zip(pc_labels, pc_counts, strict=True))
+max_methylation_pcs = max(pc_counts) if pc_counts else int(config.get("n_methylation_pcs", 5))
+legacy_methylation_pc_source_count = int(
+    config.get("legacy_methylation_pc_source_count", max_methylation_pcs)
+)
+legacy_methylation_pcs = covariate_dir / "global_methylation_pcs.tsv"
+legacy_methylation_pcs_summary = covariate_dir / "global_methylation_pcs.summary.json"
+extended_methylation_pcs = covariate_dir / f"global_methylation_pcs_pc{max_methylation_pcs}.tsv"
+extended_methylation_pcs_summary = covariate_dir / f"global_methylation_pcs_pc{max_methylation_pcs}.summary.json"
+
+def methylation_pc_source(pc_set):
+    n_pcs = pc_count_lookup[pc_set]
+    if n_pcs <= legacy_methylation_pc_source_count:
+        return legacy_methylation_pcs
+    return extended_methylation_pcs
+
+tabix_methylation = bool(config.get("tabix_methylation", True))
+indexed_methylation_dir = Path(config.get("indexed_methylation_dir", workflow_output / "indexed_methylation"))
+index_lookup = {}
+tabix_index_outputs = []
+if tabix_methylation:
+    for row in overlap_methylation_manifest.itertuples(index=False):
+        sources = str(getattr(row, "original_methylation_beds", row.original_methylation_bed)).split(";")
+        beds = str(getattr(row, "methylation_beds", row.methylation_bed)).split(";")
+        indexes = str(getattr(row, "methylation_indexes", row.methylation_index)).split(";")
+        if not (len(sources) == len(beds) == len(indexes)):
+            raise WorkflowError(f"Methylation path count mismatch for {row.sample_id}")
+        for source, bed, index in zip(sources, beds, indexes):
+            index_id = Path(bed).name.removesuffix(".methylation.bed.gz")
+            index_lookup[index_id] = source
+            tabix_index_outputs.append(index)
+
+permutation_seeds = [int(seed) for seed in config.get("permutation_seeds", [])]
+primary_pc_count = int(config.get("primary_methylation_pc_count", 30))
+primary_pc_label = f"pc{primary_pc_count}"
+if permutation_seeds and primary_pc_label not in pc_labels:
+    raise WorkflowError(f"Primary permutation PC set {primary_pc_label} is absent from methylation_pc_counts")
+permutation_dir = workflow_output / "permutations"
+permutation_summary_targets = [
+    permutation_dir / f"seed{seed}" / "summary" / "qvalue_summary.tsv" for seed in permutation_seeds
+]
+
+python_cmd = config.get("python_cmd", "uv run python")
+
+localrules: summarize_results
+
+rule all:
+    input:
+        expand(summary_dir / "{pc_set}" / "retained_assoc.tsv.gz", pc_set=pc_labels),
+        expand(summary_dir / "{pc_set}" / "top_hits.tsv", pc_set=pc_labels),
+        expand(summary_dir / "{pc_set}" / "qvalue_summary.tsv", pc_set=pc_labels),
+        expand(summary_dir / "{pc_set}" / "qvalue_summary.json", pc_set=pc_labels),
+        expand(summary_dir / "{pc_set}" / "job_summary.tsv", pc_set=pc_labels),
+        expand(summary_dir / "{pc_set}" / "qq_retained_pvalues.png", pc_set=pc_labels),
+        expand(summary_dir / "{pc_set}" / "methylation_manhattan_retained.png", pc_set=pc_labels),
+        permutation_summary_targets,
+        ([summary_dir / primary_pc_label / "permutation_calibration.tsv"] if permutation_seeds else []),
+
+rule index_methylation_bed:
+    input:
+        source=lambda wc: index_lookup[wc.index_id],
+    output:
+        bed=indexed_methylation_dir / "{index_id}.methylation.bed.gz",
+        index=indexed_methylation_dir / "{index_id}.methylation.bed.gz.tbi",
+        summary=indexed_methylation_dir / "{index_id}.summary.json",
+    params:
+        copy_non_bgzf="--copy-non-bgzf" if config.get("copy_non_bgzf_methylation", False) else "",
+        tabix_threads=int(config.get("tabix_threads", 1)),
+        backend=config.get("methylation_index_backend", "duckhts"),
+    threads: int(config.get("tabix_threads", 1))
+    resources:
+        mem_mb=int(config.get("mem_mb_tabix", 2000)),
+        runtime=int(config.get("runtime_tabix", 120)),
+    shell:
+        (
+            "{python_cmd} scripts/index_methylation_bed.py "
+            "--source {input.source} "
+            "--output-bed {output.bed} "
+            "--summary {output.summary} "
+            "--threads {params.tabix_threads} "
+            "--backend {params.backend} "
+            "{params.copy_non_bgzf}"
+        )
+
+rule methylation_matrix:
+    input:
+        manifest=overlap_methyl_manifest,
+        samples=sample_path,
+        indexes=tabix_index_outputs,
+    output:
+        matrix=matrix_dir / "{chunk_id}.methylation.tsv.gz",
+        summary=matrix_dir / "{chunk_id}.summary.json",
+    params:
+        chrom=lambda wc: chunk_manifest.loc[wc.chunk_id, "chrom"],
+        start=lambda wc: int(chunk_manifest.loc[wc.chunk_id, "start"]),
+        end=lambda wc: int(chunk_manifest.loc[wc.chunk_id, "end"]),
+        coverage_min=config.get("coverage_min", 10),
+        min_sample_fraction=config.get("min_sample_fraction", 0.75),
+        max_sites=config.get("max_sites_per_chunk", 0),
+        sorted_arg="" if config.get("assume_sorted_methylation", True) else "--no-assume-sorted",
+        backend=config.get("methylation_backend", "auto"),
+    threads: 1
+    resources:
+        mem_mb=int(config.get("mem_mb_matrix", 16000)),
+        runtime=int(config.get("runtime_matrix", 240)),
+    shell:
+        (
+            "{python_cmd} scripts/make_methylation_matrix.py "
+            "--manifest {input.manifest} "
+            "--samples {input.samples} "
+            "--chrom {params.chrom} "
+            "--start {params.start} "
+            "--end {params.end} "
+            "--coverage-min {params.coverage_min} "
+            "--min-sample-fraction {params.min_sample_fraction} "
+            "--max-sites {params.max_sites} "
+            "--backend {params.backend} "
+            "{params.sorted_arg} "
+            "--output {output.matrix} "
+            "--summary {output.summary}"
+        )
+
+rule methylation_pcs:
+    input:
+        samples=sample_path,
+        matrices=matrix_outputs,
+        summaries=matrix_summary_outputs,
+    output:
+        pcs=legacy_methylation_pcs,
+        summary=legacy_methylation_pcs_summary,
+    params:
+        max_sites=config.get("pc_max_sites", 200000),
+        n_pcs=min(max_methylation_pcs, legacy_methylation_pc_source_count),
+        chunksize=config.get("pc_matrix_chunk_rows", 20000),
+    threads: 1
+    resources:
+        mem_mb=int(config.get("mem_mb_methylation_pcs", config.get("mem_mb_summary", 8000))),
+        runtime=int(config.get("runtime_methylation_pcs", 180)),
+    shell:
+        (
+            "{python_cmd} scripts/compute_methylation_pcs.py "
+            "--matrices {input.matrices} "
+            "--samples {input.samples} "
+            "--n-pcs {params.n_pcs} "
+            "--max-sites {params.max_sites} "
+            "--chunksize {params.chunksize} "
+            "--output {output.pcs} "
+            "--summary {output.summary}"
+        )
+
+rule methylation_pcs_extended:
+    input:
+        samples=sample_path,
+        matrices=matrix_outputs,
+        summaries=matrix_summary_outputs,
+    output:
+        pcs=extended_methylation_pcs,
+        summary=extended_methylation_pcs_summary,
+    params:
+        max_sites=config.get("pc_max_sites", 200000),
+        n_pcs=max_methylation_pcs,
+        chunksize=config.get("pc_matrix_chunk_rows", 20000),
+    threads: 1
+    resources:
+        mem_mb=int(config.get("mem_mb_methylation_pcs", config.get("mem_mb_summary", 8000))),
+        runtime=int(config.get("runtime_methylation_pcs", 180)),
+    shell:
+        (
+            "{python_cmd} scripts/compute_methylation_pcs.py "
+            "--matrices {input.matrices} "
+            "--samples {input.samples} "
+            "--n-pcs {params.n_pcs} "
+            "--max-sites {params.max_sites} "
+            "--chunksize {params.chunksize} "
+            "--output {output.pcs} "
+            "--summary {output.summary}"
+        )
+
+rule build_covariates:
+    input:
+        methyl_manifest=overlap_methyl_manifest,
+        samples=sample_path,
+        methyl_pcs=lambda wc: methylation_pc_source(wc.pc_set),
+    output:
+        covariates=covariate_dir / "{pc_set}" / "meqtl_covariates.tsv",
+        summary=covariate_dir / "{pc_set}" / "meqtl_covariates.summary.json",
+    params:
+        upstream_covariates=(
+            f"--upstream-covariates {config['upstream_covariates']}"
+            if config.get("upstream_covariates")
+            else ""
+        ),
+        include_sex="--include-sex" if config.get("include_sex", True) else "",
+        n_genotype_pcs=config.get("n_genotype_pcs", 5),
+        include_platform="--include-platform-covariates" if config.get("include_platform_covariates", True) else "",
+        n_methylation_pcs=lambda wc: pc_count_lookup[wc.pc_set],
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 8000)),
+        runtime=int(config.get("runtime_summary", 60)),
+    shell:
+        (
+            "{python_cmd} scripts/build_meqtl_covariates.py "
+            "--methylation-manifest {input.methyl_manifest} "
+            "--samples {input.samples} "
+            "{params.upstream_covariates} "
+            "{params.include_sex} "
+            "--n-genotype-pcs {params.n_genotype_pcs} "
+            "{params.include_platform} "
+            "--methylation-pcs {input.methyl_pcs} "
+            "--n-methylation-pcs {params.n_methylation_pcs} "
+            "--output {output.covariates} "
+            "--summary {output.summary}"
+        )
+
+rule run_assoc_job:
+    input:
+        matrix=lambda wc: matrix_dir / f"{job_lookup[wc.job_id]['chunk_id']}.methylation.tsv.gz",
+        covariates=covariate_dir / "{pc_set}" / "meqtl_covariates.tsv",
+        sv_metadata=lambda wc: job_lookup[wc.job_id]["sv_metadata"],
+    output:
+        signals=jobs_dir / "{pc_set}" / "{job_id}" / "signals.tsv.gz",
+        summary=jobs_dir / "{pc_set}" / "{job_id}" / "summary.json",
+    params:
+        sv_dosages=lambda wc: job_lookup[wc.job_id]["sv_dosages"],
+        sv_indices=lambda wc: job_lookup[wc.job_id]["sv_indices"],
+        pvalue_threshold=config.get("association_pvalue_threshold", 1e-4),
+        top_per_sv=config.get("top_per_sv", 10),
+        write_all="--write-all" if config.get("write_all_associations", False) else "",
+    threads: 1
+    resources:
+        mem_mb=int(config.get("mem_mb_assoc", 8000)),
+        runtime=int(config.get("runtime_assoc", 120)),
+    shell:
+        (
+            "{python_cmd} scripts/run_sv_methylation_assoc.py "
+            "--sv-dosages {params.sv_dosages} "
+            "--sv-metadata {input.sv_metadata} "
+            "--sv-indices {params.sv_indices} "
+            "--methylation-matrix {input.matrix} "
+            "--covariates {input.covariates} "
+            "--pvalue-threshold {params.pvalue_threshold} "
+            "--top-per-sv {params.top_per_sv} "
+            "{params.write_all} "
+            "--output {output.signals} "
+            "--summary {output.summary}"
+        )
+
+rule summarize_results:
+    input:
+        manifest=job_manifest_path,
+        signals=lambda wc: expand(jobs_dir / wc.pc_set / "{job_id}" / "signals.tsv.gz", job_id=job_ids),
+        summaries=lambda wc: expand(jobs_dir / wc.pc_set / "{job_id}" / "summary.json", job_id=job_ids),
+    output:
+        assoc=summary_dir / "{pc_set}" / "retained_assoc.tsv.gz",
+        top=summary_dir / "{pc_set}" / "top_hits.tsv",
+        qvalue=summary_dir / "{pc_set}" / "qvalue_summary.tsv",
+        qvalue_json=summary_dir / "{pc_set}" / "qvalue_summary.json",
+        job_summary=summary_dir / "{pc_set}" / "job_summary.tsv",
+        qq=summary_dir / "{pc_set}" / "qq_retained_pvalues.png",
+        manhattan=summary_dir / "{pc_set}" / "methylation_manhattan_retained.png",
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 8000)),
+        runtime=int(config.get("runtime_summary", 60)),
+    shell:
+        (
+            "{python_cmd} scripts/summarize_meqtl_pilot.py "
+            "--job-manifest {input.manifest} "
+            "--jobs-dir {jobs_dir}/{wildcards.pc_set} "
+            "--output-dir {summary_dir}/{wildcards.pc_set}"
+        )
+
+rule run_assoc_permutation:
+    input:
+        matrix=lambda wc: matrix_dir / f"{job_lookup[wc.job_id]['chunk_id']}.methylation.tsv.gz",
+        covariates=covariate_dir / primary_pc_label / "meqtl_covariates.tsv",
+        sv_metadata=lambda wc: job_lookup[wc.job_id]["sv_metadata"],
+    output:
+        signals=permutation_dir / "seed{seed}" / "jobs" / "{job_id}" / "signals.tsv.gz",
+        summary=permutation_dir / "seed{seed}" / "jobs" / "{job_id}" / "summary.json",
+    params:
+        sv_dosages=lambda wc: job_lookup[wc.job_id]["sv_dosages"],
+        sv_indices=lambda wc: job_lookup[wc.job_id]["sv_indices"],
+        pvalue_threshold=config.get("association_pvalue_threshold", 1e-4),
+        top_per_sv=config.get("top_per_sv", 10),
+    threads: 1
+    resources:
+        mem_mb=int(config.get("mem_mb_assoc", 8000)),
+        runtime=int(config.get("runtime_assoc", 120)),
+    shell:
+        (
+            "{python_cmd} scripts/run_sv_methylation_assoc.py "
+            "--sv-dosages {params.sv_dosages} "
+            "--sv-metadata {input.sv_metadata} "
+            "--sv-indices {params.sv_indices} "
+            "--methylation-matrix {input.matrix} "
+            "--covariates {input.covariates} "
+            "--pvalue-threshold {params.pvalue_threshold} "
+            "--top-per-sv {params.top_per_sv} "
+            "--permute-genotype-seed {wildcards.seed} "
+            "--output {output.signals} "
+            "--summary {output.summary}"
+        )
+
+rule summarize_permutation:
+    input:
+        manifest=job_manifest_path,
+        signals=lambda wc: expand(permutation_dir / f"seed{wc.seed}" / "jobs" / "{job_id}" / "signals.tsv.gz", job_id=job_ids),
+        summaries=lambda wc: expand(permutation_dir / f"seed{wc.seed}" / "jobs" / "{job_id}" / "summary.json", job_id=job_ids),
+    output:
+        assoc=permutation_dir / "seed{seed}" / "summary" / "retained_assoc.tsv.gz",
+        top=permutation_dir / "seed{seed}" / "summary" / "top_hits.tsv",
+        qvalue=permutation_dir / "seed{seed}" / "summary" / "qvalue_summary.tsv",
+        qvalue_json=permutation_dir / "seed{seed}" / "summary" / "qvalue_summary.json",
+        job_summary=permutation_dir / "seed{seed}" / "summary" / "job_summary.tsv",
+        qq=permutation_dir / "seed{seed}" / "summary" / "qq_retained_pvalues.png",
+        manhattan=permutation_dir / "seed{seed}" / "summary" / "methylation_manhattan_retained.png",
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 8000)),
+        runtime=int(config.get("runtime_summary", 60)),
+    shell:
+        (
+            "{python_cmd} scripts/summarize_meqtl_pilot.py "
+            "--job-manifest {input.manifest} "
+            "--jobs-dir {permutation_dir}/seed{wildcards.seed}/jobs "
+            "--output-dir {permutation_dir}/seed{wildcards.seed}/summary"
+        )
+
+rule summarize_permutation_calibration:
+    input:
+        observed=summary_dir / primary_pc_label / "retained_assoc.tsv.gz",
+        permuted=[permutation_dir / f"seed{seed}" / "summary" / "retained_assoc.tsv.gz" for seed in permutation_seeds],
+    output:
+        table=summary_dir / primary_pc_label / "permutation_calibration.tsv",
+        summary=summary_dir / primary_pc_label / "permutation_calibration.json",
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 8000)),
+        runtime=int(config.get("runtime_summary", 60)),
+    shell:
+        (
+            "{python_cmd} scripts/summarize_meqtl_permutations.py "
+            "--observed {input.observed} --permuted {input.permuted} "
+            "--output {output.table} --summary {output.summary}"
+        )

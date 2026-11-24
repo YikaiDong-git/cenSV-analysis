@@ -1,0 +1,125 @@
+configfile: "config/meqtl_robust.yaml"
+
+from pathlib import Path
+
+import pandas as pd
+
+output_root = Path(config["workflow_output"])
+manifest_path = Path(config["job_manifest"])
+manifest = pd.read_csv(manifest_path, sep="\t")
+job_ids = manifest["job_id"].astype(str).tolist()
+lookup = manifest.set_index("job_id").to_dict(orient="index")
+python_cmd = config.get("python_cmd", "uv run python")
+matrix_paths = [
+    Path(config["matrix_dir"]) / f"{chunk}.methylation.tsv.gz"
+    for chunk in sorted(manifest["chunk_id"].astype(str).unique())
+]
+dosage_paths = [Path(path) for path in sorted(manifest["sv_dosages"].astype(str).unique())]
+design_path = output_root / "shared" / "canonical_design.npz"
+design_summary_path = output_root / "shared" / "canonical_design_summary.json"
+genotype_covariates = ",".join(config["genotype_covariates"])
+methylation_covariates = ",".join(config["methylation_covariates"])
+score_thresholds = ",".join(str(value) for value in config["score_thresholds"])
+
+rule all:
+    input:
+        design_summary_path,
+        output_root / "summary" / "calibration.json",
+        output_root / "summary" / "association_results.tsv.gz",
+        output_root / "summary" / "full_family_qvalues.npz",
+        output_root / "summary" / "empirical_fdr_curve.tsv",
+        output_root / "summary" / "lead_sv_results.tsv",
+        output_root / "summary" / "target_validation.tsv",
+
+rule prepare_design:
+    input:
+        manifest=manifest_path,
+        covariates=Path(config["covariates"]),
+        matrices=matrix_paths,
+        dosages=dosage_paths,
+    output:
+        design=design_path,
+        summary=design_summary_path,
+    resources:
+        mem_mb=4000,
+        runtime=30,
+    shell:
+        (
+            "{python_cmd} scripts/prepare_robust_meqtl_design.py "
+            "--job-manifest {input.manifest} --matrix-dir {config[matrix_dir]} "
+            "--covariates {input.covariates} "
+            "--genotype-covariates {genotype_covariates} "
+            "--methylation-covariates {methylation_covariates} "
+            "--n-multipliers {config[n_multipliers]} "
+            "--multiplier-seed-base {config[multiplier_seed_base]} "
+            "--output {output.design} --summary {output.summary}"
+        )
+
+rule robust_chunk:
+    input:
+        matrix=lambda wc: Path(config["matrix_dir"]) / f"{lookup[wc.job_id]['chunk_id']}.methylation.tsv.gz",
+        design=design_path,
+        sv_qc=Path(config["sv_qc"]),
+        targets=Path(config["targets"]),
+        dosage=lambda wc: Path(lookup[wc.job_id]["sv_dosages"]),
+        metadata=lambda wc: Path(lookup[wc.job_id]["sv_metadata"]),
+    output:
+        observed=output_root / "jobs" / "{job_id}" / "observed.tsv.gz",
+        pvalues=output_root / "jobs" / "{job_id}" / "all_pvalues.npz",
+        null=output_root / "jobs" / "{job_id}" / "null_maxima.npz",
+        summary=output_root / "jobs" / "{job_id}" / "summary.json",
+    params:
+        indices=lambda wc: lookup[wc.job_id]["sv_indices"],
+    threads: int(config.get("threads_assoc", 4))
+    resources:
+        mem_mb=int(config.get("mem_mb_assoc", 24000)),
+        runtime=int(config.get("runtime_assoc", 720)),
+    shell:
+        (
+            "OPENBLAS_NUM_THREADS={threads} OMP_NUM_THREADS={threads} MKL_NUM_THREADS={threads} "
+            "{python_cmd} scripts/run_robust_meqtl_chunk.py "
+            "--sv-dosages {input.dosage} --sv-metadata {input.metadata} "
+            "--sv-indices {params.indices} --sv-qc {input.sv_qc} "
+            "--methylation-matrix {input.matrix} --design {input.design} "
+            "--targets {input.targets} --min-carriers {config[min_carriers]} "
+            "--primary-min-carriers {config[primary_min_carriers]} "
+            "--min-mac {config[min_mac]} --primary-min-mac {config[primary_min_mac]} "
+            "--min-feature-fraction {config[min_feature_fraction]} "
+            "--multiplier-batch-size {config[multiplier_batch_size]} "
+            "--feature-batch-size {config[feature_batch_size]} "
+            "--score-thresholds {score_thresholds} "
+            "--pvalue-threshold {config[pvalue_threshold]} "
+            "--top-per-sv {config[top_per_sv]} "
+            "--output {output.observed} --pvalues-output {output.pvalues} "
+            "--null-output {output.null} --summary {output.summary}"
+        )
+
+rule summarize:
+    input:
+        manifest=manifest_path,
+        design=design_path,
+        observed=expand(output_root / "jobs" / "{job_id}" / "observed.tsv.gz", job_id=job_ids),
+        pvalues=expand(output_root / "jobs" / "{job_id}" / "all_pvalues.npz", job_id=job_ids),
+        null=expand(output_root / "jobs" / "{job_id}" / "null_maxima.npz", job_id=job_ids),
+        summaries=expand(output_root / "jobs" / "{job_id}" / "summary.json", job_id=job_ids),
+    output:
+        calibration=output_root / "summary" / "calibration.json",
+        associations=output_root / "summary" / "association_results.tsv.gz",
+        qvalues=output_root / "summary" / "full_family_qvalues.npz",
+        fdr=output_root / "summary" / "empirical_fdr_curve.tsv",
+        lead=output_root / "summary" / "lead_sv_results.tsv",
+        targets=output_root / "summary" / "target_validation.tsv",
+    resources:
+        mem_mb=int(config.get("mem_mb_summary", 32000)),
+        runtime=int(config.get("runtime_summary", 240)),
+    shell:
+        (
+            "{python_cmd} scripts/summarize_robust_meqtl.py "
+            "--job-manifest {input.manifest} --jobs-dir {output_root}/jobs "
+            "--design {input.design} --output-dir {output_root}/summary "
+            "--min-carriers {config[min_carriers]} "
+            "--primary-min-carriers {config[primary_min_carriers]} "
+            "--min-mac {config[min_mac]} --primary-min-mac {config[primary_min_mac]} "
+            "--min-feature-fraction {config[min_feature_fraction]} "
+            "--pvalue-threshold {config[pvalue_threshold]}"
+        )
